@@ -86,8 +86,26 @@ local generate = function(system, entity)
 
     -- Add rivers
 
-    entity_manager.add_component(entity.id, "tilemap", {heights = heights})
+    entity_manager.add_component(entity.id, "tilemap", {
+        heights = heights
+    })
     -- TODO: stitch together background tiles (and add renderable?)
+    -- TODO: look into spritebatches (they seem exactly what's needed for this)
+    local background_map = ""
+    for j, row in ipairs(heights) do
+        for i, height in ipairs(row) do
+            background_map = background_map .. tostring(height)
+        end
+        background_map = background_map .. "\n"
+    end
+    entity_manager.add_component(entity.id, "renderable", {
+        visible   = true,
+        colour    = {0.2, 0.2, 0.5},
+        character = background_map,
+    })
+    entity_manager.add_component(entity.id, "location", {
+        position = {0, 0}
+    })
 
     system_manager.disable_system(system.id)
 end 
