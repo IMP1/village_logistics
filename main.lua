@@ -13,6 +13,8 @@ end
 -- /REMOVE
 
 function love.load()
+    math.randomseed(os.time())
+    math.random(); math.random(); math.random()
     love.graphics.setDefaultFilter("nearest", "nearest")
     scene_manager.hook()
     scene_manager.setScene(INITIAL_SCENE.new())

@@ -2,7 +2,7 @@ local entity_manager = require 'ecs.entity_manager'
 
 local name = "camera_input"
 
-local MOVE_SPEED = 100 -- pixels / second
+local MOVE_SPEED = 256 -- pixels / second
 
 local filter = entity_manager.component_filter("viewport", "transform")
 
