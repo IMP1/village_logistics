@@ -5,14 +5,14 @@ local system_manager = {}
 local systems        = {} -- list of systems
 local entity_manager = nil
 
-local function new_system(name)
+local function new_system(options)
     local new_id = uuid()
     return {
         id      = new_id,
-        name    = name,
         enabled = false,
-        filter  = function(e) return false end,
-        events  = {},
+        name    = options.name    or "unnamed_system",
+        filters = options.filters or {},
+        events  = options.events  or {},
     }
 end
 
@@ -27,7 +27,7 @@ end
 
 local function handle_local_event(system, event_name, ...)
     if system.enabled and system.events[event_name] then
-        local entities = entity_manager.get_entities(system.filter)
+        local entities = entity_manager.get_entities(system.filters[event_name])
         for _, entity in pairs(entities) do
             system.events[event_name](system, entity, ...)
         end
@@ -38,14 +38,8 @@ function system_manager.set_entity_manager(manager)
     entity_manager = manager
 end
 
-function system_manager.create_system(name, filter, events)
-    local system = new_system(name)
-    if filter then
-        system.filter = filter
-    end
-    if events then 
-        system.events = events
-    end
+function system_manager.create_system(options)
+    local system = new_system(options)
     table.insert(systems, system)
     return system.id
 end
@@ -86,7 +80,9 @@ function system_manager.update(dt)
 end
 
 function system_manager.draw()
+    handle_global_event("predraw")
     handle_global_event("draw")
+    handle_global_event("postdraw")
 end
 
 function system_manager.hook()

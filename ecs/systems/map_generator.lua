@@ -18,12 +18,12 @@ local function add_tree(map, x, y, prob)
     map[y][x] = "tree"
     local tree = entity_manager.create_entity("tree")
     entity_manager.add_component(tree, "location", {
-        position = {x * 8, y * 8}
+        position = {(x-1) * 32, (y-1) * 32}
     })
     entity_manager.add_component(tree, "renderable", {
         visible   = true,
-        character = "‡",
-        colour    = {0, 1, 0},
+        texture   = love.graphics.newImage("res/gfx/tree.png"),
+        colour    = {1, 1, 1},
     })
     -- TODO: harvestable is unused
     entity_manager.add_component(tree, "harvestable", {
@@ -86,22 +86,23 @@ local generate = function(system, entity)
 
     -- Add rivers
 
+    -- Make a background image
     entity_manager.add_component(entity.id, "tilemap", {
         heights = heights
     })
-    -- TODO: stitch together background tiles (and add renderable?)
-    -- TODO: look into spritebatches (they seem exactly what's needed for this)
-    local background_map = ""
+    local grass_tile = love.graphics.newImage("res/gfx/grass_plain.png")
+    local grass_quad = love.graphics.newQuad(0, 0, 32, 32, 32, 23)
+    local background_texture = love.graphics.newSpriteBatch(grass_tile, width * height)
     for j, row in ipairs(heights) do
         for i, height in ipairs(row) do
-            background_map = background_map .. tostring(height)
+            background_texture:add(grass_quad, (i-1) * 32, (j-1) * 32)
         end
-        background_map = background_map .. "\n"
     end
+    background_texture:flush()
     entity_manager.add_component(entity.id, "renderable", {
-        visible   = true,
-        colour    = {0.2, 0.2, 0.5},
-        character = background_map,
+        visible = true,
+        colour  = {1, 1, 1},
+        texture = background_texture,
     })
     entity_manager.add_component(entity.id, "location", {
         position = {0, 0}
@@ -113,7 +114,7 @@ end
 local filter = entity_manager.component_filter("map", "generatable")
 
 return {
-    name   = name,
-    filter = filter,
-    events = {enable = generate},
+    name    = name,
+    filters = { enable = filter },
+    events  = { enable = generate },
 }
