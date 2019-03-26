@@ -13,6 +13,7 @@ end
 -- /REMOVE
 
 function love.load()
+    love.graphics.setDefaultFilter("nearest", "nearest")
     scene_manager.hook()
     scene_manager.setScene(INITIAL_SCENE.new())
 end
