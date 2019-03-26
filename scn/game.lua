@@ -17,7 +17,7 @@ end
 
 local function load_system(path, enable)
     local data = love.filesystem.load(path)()
-    local id = system_manager.create_system(data.name, data.filter, data.events)
+    local id = system_manager.create_system(data)
     if enable then
         system_manager.enable_system(id)
     end
@@ -31,13 +31,15 @@ function Scene.new()
     system_manager.set_entity_manager(entity_manager)
     system_manager.hook()
 
-    local player = load_entity("ecs/entities/player.lua")
-    local renderer = load_system("ecs/systems/renderer.lua", true)
-
     local map = entity_manager.create_entity("map")
-    entity_manager.add_component(map, "map", {width=50, height=50})
+    entity_manager.add_component(map, "map", {width=40, height=20})
     entity_manager.add_component(map, "generatable")
 
+    load_entity("ecs/entities/worker.lua")
+    load_entity("ecs/entities/camera.lua")
+
+    load_system("ecs/systems/camera_input.lua", true)
+    load_system("ecs/systems/renderer.lua", true)
     load_system("ecs/systems/map_generator.lua", true)
 
     return self
