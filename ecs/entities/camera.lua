@@ -1,4 +1,3 @@
-
 local name = "camera_2d"
 
 return {

@@ -6,24 +6,6 @@ local Scene = {}
 setmetatable(Scene, Base)
 Scene.__index = Scene
 
-local function load_entity(path)
-    local data = love.filesystem.load(path)()
-    local id = entity_manager.create_entity(data.name)
-    for component, params in pairs(data.components) do
-        entity_manager.add_component(id, component, params)
-    end
-    return id
-end
-
-local function load_system(path, enable)
-    local data = love.filesystem.load(path)()
-    local id = system_manager.create_system(data)
-    if enable then
-        system_manager.enable_system(id)
-    end
-    return id
-end
-
 function Scene.new()
     local self = Base.new("game")
     setmetatable(self, Scene)
@@ -31,16 +13,16 @@ function Scene.new()
     system_manager.set_entity_manager(entity_manager)
     system_manager.hook()
 
-    local map = entity_manager.create_entity("map")
-    entity_manager.add_component(map, "map", {width=40, height=20})
-    entity_manager.add_component(map, "generatable")
+    entity_manager.load_entity("ecs/entities/map.lua")
+    system_manager.load_system("ecs/systems/map_generator.lua", true)
 
-    load_entity("ecs/entities/worker.lua")
-    load_entity("ecs/entities/camera.lua")
+    entity_manager.load_entity("ecs/entities/worker.lua")
+    entity_manager.load_entity("ecs/entities/camera.lua")
 
-    load_system("ecs/systems/camera_input.lua", true)
-    load_system("ecs/systems/renderer.lua", true)
-    load_system("ecs/systems/map_generator.lua", true)
+    system_manager.load_system("ecs/systems/camera_input.lua", true)
+    system_manager.load_system("ecs/systems/renderer.lua", true)
+    system_manager.load_system("ecs/systems/resource_degrade.lua", true)
+    system_manager.load_system("ecs/systems/mouse_input.lua", true)
 
     return self
 end

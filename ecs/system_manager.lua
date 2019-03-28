@@ -38,6 +38,18 @@ function system_manager.set_entity_manager(manager)
     entity_manager = manager
 end
 
+function system_manager.load_system(path, enable)
+    if not love.filesystem.exists(path) then
+        error(string.format("Could not find system '%s'", path))
+    end
+    local data = love.filesystem.load(path)()
+    local id = system_manager.create_system(data)
+    if enable then
+        system_manager.enable_system(id)
+    end
+    return id
+end
+
 function system_manager.create_system(options)
     local system = new_system(options)
     table.insert(systems, system)
@@ -67,6 +79,15 @@ function system_manager.disable_system(system_id)
 
     handle_local_event(systems[index], "disable")
     systems[index].enabled = false
+end
+
+function system_manager.running_systems()
+    local result = {}
+    for _, system in ipairs(systems) do
+        if system.enabled then
+            table.insert(result, system.name)
+        end
+    end
 end
 
 local function handle_global_event(event_name, ...)

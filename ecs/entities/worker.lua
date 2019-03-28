@@ -1,10 +1,19 @@
-
 local name = "worker"
 
 return {
     name = name,
     components = {
-        worker = {}, -- TODO: rethink this
+        selectable = {},
+        harvester = {
+            -- harvest speeds?
+        },
+        carrier = {
+            -- resource limits?
+        },
+        moveable = {
+            -- speed
+            -- path
+        },
         location = {
             position = {0, 0},
         },

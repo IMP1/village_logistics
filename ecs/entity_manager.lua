@@ -49,6 +49,25 @@ function entity_manager.get_entities(filter)
     return result
 end
 
+function entity_manager.load_entity(path)
+    if not love.filesystem.exists(path) then
+        error(string.format("Could not find entity '%s'", path))
+    end
+    local data = love.filesystem.load(path)()
+    if data.id then 
+        -- loading from save file
+        table.insert(entities, data)
+        return data.id
+    else 
+        -- creating from template
+        local id = entity_manager.create_entity(data.name)
+        for component, params in pairs(data.components) do
+            entity_manager.add_component(id, component, params)
+        end
+        return id
+    end
+end
+
 function entity_manager.create_entity(name)
     local entity = new_entity(name)
     table.insert(entities, entity)
@@ -72,6 +91,13 @@ function entity_manager.add_component(entity_id, component_name, options)
         print("WARNING: " .. string.format(message, entity.name, component_name))
     end
     entity.components[component_name] = (options or {})
+end
+
+function entity_manager.get_component(entity_id, component_name)
+    local index = entity_index(entity_id)
+    if entities[index] then
+        return entities[index].components[component_name]
+    end
 end
 
 function entity_manager.remove_component(entity_id, component_name)

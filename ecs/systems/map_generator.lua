@@ -11,29 +11,17 @@ end
 
 -- Trees
 
-local function add_tree(map, x, y, prob)
+local function add_tree(map, x, y)
     if y < 1 or y > #map    then return false end
     if x < 1 or x > #map[y] then return false end
     if map[y][x] ~= ""      then return false end
-    if math.random() > prob then return false end
 
     map[y][x] = "tree"
-    local tree = entity_manager.create_entity("tree")
-    entity_manager.add_component(tree, "location", {
-        position = {(x-1) * 32, (y-1) * 32}
-    })
-    entity_manager.add_component(tree, "renderable", {
-        visible   = true,
-        texture   = love.graphics.newImage("res/gfx/tree.png"),
-        colour    = {1, 1, 1},
-    })
-    -- TODO: harvestable is unused
-    entity_manager.add_component(tree, "harvestable", {
-        resource   = "wood",
-        amount     = 100,
-        work_time  = 1,
-        on_exhaust = function() end,
-    })
+
+    local tree = entity_manager.load_entity("ecs/entities/tree.lua")
+    local location = entity_manager.get_component(tree, "location")
+    location.position = {(x-1) * 32, (y-1) * 32}
+
     return true
 end
 
@@ -41,6 +29,9 @@ local function create_forest(map, x, y, size, spread, prob)
     if size == 0 then return end
     if prob == nil then prob = 1 end
 
+    if math.random() > prob then
+        return
+    end
     local success = add_tree(map, x, y, prob)
     if not success then 
         return 
@@ -93,7 +84,7 @@ local function smooth_terrain(map)
     end
     for y, row in pairs(new_map) do
         for x, height in pairs(row) do
-            map[y][x] = height
+            map[y][x] = math.floor(height + 0.5)
         end
     end
 end
@@ -105,7 +96,64 @@ local function create_hill(map, x, y, size, smooth)
     end
 end
 
-local generate = function(system, entity)
+-- Lakes
+local function add_water(map, x, y, depth, origin, is_source)
+    if y < 1 or y > #map    then return false end
+    if x < 1 or x > #map[y] then return false end
+    if map[y][x] ~= ""      then return false end
+
+
+    map[y][x] = "water"
+
+    local water = entity_manager.load_entity("ecs/entities/water.lua")
+    local location = entity_manager.get_component(water, "location")
+    location.position = {(x-1) * 32, (y-1) * 32}
+    -- TODO: fluid is unused
+    local fluid = entity_manager.get_component(water, "fluid")
+    fluid.depth     = depth
+    fluid.origin    = origin
+    fluid.is_source = is_source
+    return true
+end
+
+local function create_lake(obj_map, height_map, x, y, size, height)
+    if size <= 0 then return end
+    if height == nil then
+        height = height_map[y][x]
+    end
+    if height_map[y][x] ~= height then
+        return 
+    end
+    local spreads = {}
+    if get_height(height_map, x - 1, y) == height then
+        table.insert(spreads, {x-1, y})
+    end
+    if get_height(height_map, x + 1, y) == height then
+        table.insert(spreads, {x+1, y})
+    end
+    if get_height(height_map, x, y - 1) == height then
+        table.insert(spreads, {x, y-1})
+    end
+    if get_height(height_map, x, y + 1) == height then
+        table.insert(spreads, {x, y+1})
+    end
+    if obj_map[y][x] == "" then
+        height_map[y][x] = height_map[y][x] - 1
+        add_water(obj_map, x, y, 1, nil, false)
+    end
+    if #spreads > 0 then
+        local direction = rand(1, #spreads)
+        local spread_x, spread_y = unpack(spreads[direction])
+        create_lake(obj_map, height_map, spread_x, spread_y, size-1, height)
+    end
+end
+
+-- Rivers
+local function create_river(obj_map, height_map, x, y, bend)
+    -- TODO: create rivers
+end
+
+local function generate(system, entity)
     entity_manager.remove_component(entity.id, "generatable")
     local heights = {}
     local object_map = {}
@@ -124,13 +172,16 @@ local generate = function(system, entity)
     end
 
     -- Map parameters
-    -- TODO: get from generatable component
-    local forest_amount = 4
-    local forest_size   = 40
-    local forest_spread = 0.9
-    local hill_amount   = 4
-    local hill_size     = 40
-    local hill_smooth   = 1
+    local forest_amount = entity.components.map.setup_params.forest_amount
+    local forest_size   = entity.components.map.setup_params.forest_size
+    local forest_spread = entity.components.map.setup_params.forest_spread
+    local hill_amount   = entity.components.map.setup_params.hill_amount
+    local hill_size     = entity.components.map.setup_params.hill_size
+    local hill_smooth   = entity.components.map.setup_params.hill_smooth
+    local lake_amount   = entity.components.map.setup_params.lake_amount
+    local lake_size     = entity.components.map.setup_params.lake_size
+    local river_amount  = entity.components.map.setup_params.river_amount
+    local river_bends   = entity.components.map.setup_params.river_bends
 
     -- Add forests
     local forest_count = rand(forest_amount/2, forest_amount)
@@ -143,23 +194,39 @@ local generate = function(system, entity)
 
     -- Add hills
     local hill_count = rand(hill_amount/2, hill_amount)
+    print(hill_count, "hills")
     for i = 1, hill_count do
         local x = rand(1, width)
         local y = rand(1, height)
         create_hill(heights, x, y, hill_size, hill_smooth)
     end
 
+    -- Add lakes
+    local lake_count = rand(lake_amount/2, lake_amount)
+    print(lake_count, "lakes")
+    for i = 1, lake_count do
+        local x = rand(1, width)
+        local y = rand(1, height)
+        create_lake(object_map, heights, x, y, lake_size)
+    end
+
     -- Add rivers
+    local river_count = rand(river_amount/2, river_amount)
+    print(river_count, "rivers")
+    for i = 1, river_count do
+        local x = rand(1, width)
+        local y = rand(1, height)
+        create_river(object_map, heights, x, y, river_bends)
+    end
 
     -- Make a background image
-    entity_manager.add_component(entity.id, "tilemap", {
-        heights = heights
+    entity_manager.add_component(entity.id, "heightmap", {
+        heights = heights,
     })
     local grass_tile = love.graphics.newImage("res/gfx/grass_plain.png")
     local grass_quad = love.graphics.newQuad(0, 0, 32, 32, 32, 23)
     local background_texture = love.graphics.newSpriteBatch(grass_tile, width * height)
     for j, row in ipairs(heights) do
-        print(unpack(row))
         for i, height in ipairs(row) do
             background_texture:add(grass_quad, (i-1) * 32, (j-1) * 32)
         end

@@ -6,7 +6,7 @@ local MOVE_SPEED = 256 -- pixels / second
 
 local filter = entity_manager.component_filter("viewport", "transform")
 
-local move = function(system, entity, dt)
+local function move(system, entity, dt)
     local dx, dy = 0, 0
     if love.keyboard.isDown("w") then
         dy = dy - MOVE_SPEED * dt

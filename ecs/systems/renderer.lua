@@ -3,7 +3,7 @@ local entity_manager = require 'ecs.entity_manager'
 local name = "renderer"
 
 local predraw_filter = entity_manager.component_filter("viewport", "transform")
-local predraw = function(system, entity)
+local function predraw(system, entity)
     love.graphics.push()
     local x, y, w, h = unpack(entity.components.viewport.bounds)
     love.graphics.setScissor(x, y, w, h)
@@ -14,20 +14,30 @@ local predraw = function(system, entity)
 end
 
 local draw_filter = entity_manager.component_filter("location", "renderable")
-local draw = function(system, entity)
+local function draw(system, entity)
     local visible = entity.components.renderable.visible
     if not visible then return end
     local x, y = unpack(entity.components.location.position)
     local texture = entity.components.renderable.texture
     local colour = entity.components.renderable.colour
+    local quad = entity.components.renderable.quad
     love.graphics.setColor(colour)
-    love.graphics.draw(texture, x, y)
+    if quad then
+        love.graphics.draw(texture, quad, x, y)
+    else
+        love.graphics.draw(texture, x, y)
+    end
 end
 
 local postdraw_filter = entity_manager.component_filter("viewport", "transform")
-local postdraw = function(system, entity)
+local function postdraw(system, entity)
     love.graphics.setScissor()
     love.graphics.pop()
+end
+
+local gui_filter = entity_manager.component_filter("location", "gui")
+local function guidraw(system, entity)
+    
 end
 
 return {
