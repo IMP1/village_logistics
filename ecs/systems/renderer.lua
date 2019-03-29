@@ -39,7 +39,6 @@ end
 -- local gui_filter = entity_manager.component_filter("")
 local function draw_gui()
 -- TODO: draw GUI elements
--- 
 end
 
 local function draw(system)
@@ -52,9 +51,9 @@ end
 return {
     name    = name,
     filters = {
-        draw     = entity_manager.filter_none,
+        draw = entity_manager.filter_none,
     },
     events  = {
-        draw     = draw,
+        draw = draw,
     },
 }

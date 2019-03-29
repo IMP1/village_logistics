@@ -23,6 +23,7 @@ function Scene.new()
     system_manager.load_system("ecs/systems/renderer.lua", true)
     system_manager.load_system("ecs/systems/resource_degrade.lua", true)
     system_manager.load_system("ecs/systems/mouse_input.lua", true)
+    system_manager.load_system("ecs/systems/debugger.lua", true)
 
     return self
 end
