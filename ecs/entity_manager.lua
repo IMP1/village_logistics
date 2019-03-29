@@ -2,6 +2,8 @@ local uuid = require 'lib.uuid'
 
 local entity_manager = {}
 
+entity_manager.filter_none = "NO_EVENTS"
+
 local entities = {} -- list of entities
 
 local function new_entity(name)

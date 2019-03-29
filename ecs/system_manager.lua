@@ -27,9 +27,18 @@ end
 
 local function handle_local_event(system, event_name, ...)
     if system.enabled and system.events[event_name] then
-        local entities = entity_manager.get_entities(system.filters[event_name])
-        for _, entity in pairs(entities) do
-            system.events[event_name](system, entity, ...)
+        if system.filters[event_name] == nil then
+            local message = string.format("the filter for '%s' is nil.", event_name)
+            print("WARNING: " .. message .. "It will not run for this event.")
+            print("Give it a filter, or use `entity_manager.filter_none`.")
+        end
+        if system.filters[event_name] == entity_manager.filter_none then
+            system.events[event_name](system, ...)
+        else
+            local entities = entity_manager.get_entities(system.filters[event_name])
+            for _, entity in pairs(entities) do
+                system.events[event_name](system, entity, ...)
+            end
         end
     end
 end
