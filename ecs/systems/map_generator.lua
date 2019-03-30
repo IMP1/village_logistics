@@ -43,7 +43,7 @@ local function create_forest(map, x, y, size, spread, prob)
 end
 
 -- Hills
-local function get_height(map, x, y)
+local function get_tile(map, x, y)
     if map[y] and map[y][x] then
         return map[y][x]
     else
@@ -67,7 +67,7 @@ local function smooth_terrain(map)
             local neighbour_count = 0
             for j = -1, 1 do
                 for i = -1, 1 do
-                    local neighbour_height = get_height(map, x + i, y + j)
+                    local neighbour_height = get_tile(map, x + i, y + j)
                     if neighbour_height then
                         region_height = region_height + neighbour_height
                         neighbour_count = neighbour_count + 1
@@ -125,16 +125,16 @@ local function create_lake(obj_map, height_map, x, y, size, height)
         return 
     end
     local spreads = {}
-    if get_height(height_map, x - 1, y) == height then
+    if get_tile(height_map, x - 1, y) == height then
         table.insert(spreads, {x-1, y})
     end
-    if get_height(height_map, x + 1, y) == height then
+    if get_tile(height_map, x + 1, y) == height then
         table.insert(spreads, {x+1, y})
     end
-    if get_height(height_map, x, y - 1) == height then
+    if get_tile(height_map, x, y - 1) == height then
         table.insert(spreads, {x, y-1})
     end
-    if get_height(height_map, x, y + 1) == height then
+    if get_tile(height_map, x, y + 1) == height then
         table.insert(spreads, {x, y+1})
     end
     if obj_map[y][x] == "" then
@@ -151,6 +151,30 @@ end
 -- Rivers
 local function create_river(obj_map, height_map, x, y, bend)
     -- TODO: create rivers
+end
+
+local function neighbours(obj_map, x, y, tile_type)
+    -- TODO: replace this as a bit flag mask thing
+    -- 0-15 based on combinations
+    local count = 0
+    for j = -1, 1 do
+        for i = -1, 1 do
+            if get_tile(obj_map) == tile_type and not (i == 0 and j == 0) then
+                count = count + 1
+            end
+        end
+    end
+    return count
+end
+
+local function fix_autotiles(obj_map, height_map)
+    for y, row in pairs(obj_map) do
+        for x, tile in pairs(row) do
+            if tile == "water" then
+                -- TODO: give autotile depending on neighbour count
+            end
+        end
+    end
 end
 
 local function generate(system, entity)
@@ -218,6 +242,8 @@ local function generate(system, entity)
         local y = rand(1, height)
         create_river(object_map, heights, x, y, river_bends)
     end
+
+    fix_autotiles(object_map, heights)
 
     -- Make a background image
     entity_manager.add_component(entity.id, "heightmap", {

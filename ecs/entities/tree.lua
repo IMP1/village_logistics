@@ -1,5 +1,7 @@
 local name = "tree"
 
+local tree_image = love.graphics.newImage("res/gfx/tree_stages.png")
+
 return {
     name = name,
     components = {
@@ -8,8 +10,8 @@ return {
         },
         renderable = {
             visible = true,
-            texture = love.graphics.newImage("res/gfx/tree_stages.png"),
-            quad    = love.graphics.newQuad(0, 0, 32, 32, 64, 96),
+            texture = tree_image,
+            quad    = love.graphics.newQuad(0, 0, 32, 48, 32, 144),
             colour  = {1, 1, 1},
 
         },
@@ -23,17 +25,17 @@ return {
                 {
                     count = 80,
                     image = tree_image,
-                    quad = love.graphics.newQuad(0, 0, 32, 32, 64, 96),
+                    quad = love.graphics.newQuad(0, 0, 32, 48, 32, 144),
                 },
                 {
                     count = 30,
                     image = tree_image,
-                    quad = love.graphics.newQuad(0, 32, 32, 32, 64, 96),
+                    quad = love.graphics.newQuad(0, 48, 32, 48, 32, 144),
                 },
                 {
                     count = 0,
                     image = tree_image,
-                    quad = love.graphics.newQuad(0, 64, 32, 32, 64, 96),
+                    quad = love.graphics.newQuad(0, 96, 32, 48, 32, 144),
                 },
             },
             current_stage = 1,
