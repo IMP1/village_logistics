@@ -42,6 +42,10 @@ function entity_manager.component_filter(...)
 end
 
 function entity_manager.get_entities(filter)
+    if filter == nil then
+        return entities
+    end
+    
     local result = {}
     for _, entity in pairs(entities) do
         if filter(entity) then
