@@ -140,7 +140,6 @@ local function create_lake(obj_map, height_map, x, y, size, height)
     if obj_map[y][x] == 0 then
         height_map[y][x] = height_map[y][x] - 1
         add_water(obj_map, x, y, 1, nil, false)
-        print(obj_map[y][x])
     end
     if #spreads > 0 then
         local direction = rand(1, #spreads)
