@@ -3,7 +3,11 @@ local name = "worker"
 return {
     name = name,
     components = {
-        selectable = {},
+        selectable = {
+            multiple = true,
+            priority = 10,
+            size     = 16, -- radius around location
+        },
         harvester = {
             -- harvest speeds?
         },
