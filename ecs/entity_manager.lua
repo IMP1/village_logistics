@@ -51,6 +51,14 @@ function entity_manager.get_entities(filter)
     return result
 end
 
+function entity_manager.entity_name(entity_id)
+    local index = entity_index(entity_id)
+    if not entities[index] then
+        return nil
+    end
+    return entities[index].name
+end
+
 function entity_manager.load_entity(path)
     if not love.filesystem.exists(path) then
         error(string.format("Could not find entity '%s'", path))

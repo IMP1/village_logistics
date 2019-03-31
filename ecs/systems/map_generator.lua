@@ -12,17 +12,17 @@ end
 -- Trees
 
 local function add_tree(map, x, y)
-    if y < 1 or y > #map    then return false end
-    if x < 1 or x > #map[y] then return false end
-    if map[y][x] ~= ""      then return false end
-
-    map[y][x] = "tree"
+    if y < 1 or y > #map    then return nil end
+    if x < 1 or x > #map[y] then return nil end
+    if map[y][x] ~= 0       then return nil end
 
     local tree = entity_manager.load_entity("ecs/entities/tree.lua")
     local location = entity_manager.get_component(tree, "location")
     location.position = {(x-1) * 32, (y-1) * 32}
 
-    return true
+    map[y][x] = tree
+
+    return tree
 end
 
 local function create_forest(map, x, y, size, spread, prob)
@@ -98,12 +98,9 @@ end
 
 -- Lakes
 local function add_water(map, x, y, depth, origin, is_source)
-    if y < 1 or y > #map    then return false end
-    if x < 1 or x > #map[y] then return false end
-    if map[y][x] ~= ""      then return false end
-
-
-    map[y][x] = "water"
+    if y < 1 or y > #map    then return nil end
+    if x < 1 or x > #map[y] then return nil end
+    if map[y][x] ~= 0       then return nil end
 
     local water = entity_manager.load_entity("ecs/entities/water.lua")
     local location = entity_manager.get_component(water, "location")
@@ -113,7 +110,10 @@ local function add_water(map, x, y, depth, origin, is_source)
     fluid.depth     = depth
     fluid.origin    = origin
     fluid.is_source = is_source
-    return true
+
+    map[y][x] = water
+
+    return water
 end
 
 local function create_lake(obj_map, height_map, x, y, size, height)
@@ -137,9 +137,10 @@ local function create_lake(obj_map, height_map, x, y, size, height)
     if get_tile(height_map, x, y + 1) == height then
         table.insert(spreads, {x, y+1})
     end
-    if obj_map[y][x] == "" then
+    if obj_map[y][x] == 0 then
         height_map[y][x] = height_map[y][x] - 1
         add_water(obj_map, x, y, 1, nil, false)
+        print(obj_map[y][x])
     end
     if #spreads > 0 then
         local direction = rand(1, #spreads)
@@ -153,26 +154,52 @@ local function create_river(obj_map, height_map, x, y, bend)
     -- TODO: create rivers
 end
 
-local function neighbours(obj_map, x, y, tile_type)
-    -- TODO: replace this as a bit flag mask thing
-    -- 0-15 based on combinations
-    local count = 0
-    for j = -1, 1 do
-        for i = -1, 1 do
-            if get_tile(obj_map) == tile_type and not (i == 0 and j == 0) then
-                count = count + 1
+local function neighbours(map, x, y, func)
+    local neighbour_flags = 0
+    if func(get_tile(map, x, y-1)) then
+        neighbour_flags = neighbour_flags + 1
+    end
+    if func(get_tile(map, x+1, y)) then
+        neighbour_flags = neighbour_flags + 2
+    end
+    if func(get_tile(map, x, y+1)) then
+        neighbour_flags = neighbour_flags + 4
+    end
+    if func(get_tile(map, x-1, y)) then
+        neighbour_flags = neighbour_flags + 8
+    end
+    return neighbour_flags
+end
+
+local function draw_autotiles(background_spritebatch, obj_map, height_map)
+    for j, row in pairs(obj_map) do
+        for i, tile in pairs(row) do
+            if entity_manager.entity_name(tile) == "water" then
+                local is_land = function(obj)
+                    return entity_manager.entity_name(obj) ~= "water" 
+                end
+                local neighbouring_waters = neighbours(obj_map, i, j, is_land)
+                local x = 128 + 32 * math.floor(neighbouring_waters / 4)
+                local y = 32 * (neighbouring_waters % 4)
+                local water_quad = love.graphics.newQuad(x, y, 32, 32, 256, 256)
+                local water_tile = entity_manager.get_component(tile, "renderable")
+                water_tile.quad = water_quad
             end
         end
     end
-    return count
-end
-
-local function fix_autotiles(obj_map, height_map)
-    for y, row in pairs(obj_map) do
-        for x, tile in pairs(row) do
-            if tile == "water" then
-                -- TODO: give autotile depending on neighbour count
+    for j, row in pairs(height_map) do
+        for i, tile in pairs(row) do
+            local is_lower = function(height)
+                if height == nil then
+                    return false
+                end
+                return height < tile
             end
+            local neighbouring_hills = neighbours(height_map, i, j, is_lower)
+            local x = 32 * math.floor(neighbouring_hills / 4)
+            local y = 32 * (neighbouring_hills % 4)
+            local hill_quad = love.graphics.newQuad(x, y, 32, 32, 256, 256)
+            background_spritebatch:add(hill_quad, (i-1) * 32, (j-1) * 32)
         end
     end
 end
@@ -191,7 +218,7 @@ local function generate(system, entity)
         object_map[j] = {}
         for i = 1, width do
             heights[j][i] = 1
-            object_map[j][i] = ""
+            object_map[j][i] = 0
         end
     end
 
@@ -243,21 +270,17 @@ local function generate(system, entity)
         create_river(object_map, heights, x, y, river_bends)
     end
 
-    fix_autotiles(object_map, heights)
-
     -- Make a background image
     entity_manager.add_component(entity.id, "heightmap", {
         heights = heights,
     })
-    local grass_tile = love.graphics.newImage("res/gfx/grass_plain.png")
-    local grass_quad = love.graphics.newQuad(0, 0, 32, 32, 32, 23)
-    local background_texture = love.graphics.newSpriteBatch(grass_tile, width * height)
-    for j, row in ipairs(heights) do
-        for i, height in ipairs(row) do
-            background_texture:add(grass_quad, (i-1) * 32, (j-1) * 32)
-        end
-    end
+    local tileset = love.graphics.newImage("res/gfx/tileset.png")
+
+    local background_texture = love.graphics.newSpriteBatch(tileset, width * height)
+
+    draw_autotiles(background_texture, object_map, heights)
     background_texture:flush()
+
     entity_manager.add_component(entity.id, "renderable", {
         visible = true,
         colour  = {1, 1, 1},
