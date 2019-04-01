@@ -194,7 +194,12 @@ local function draw_autotiles(background_spritebatch, obj_map, height_map)
                 end
                 return height < tile
             end
+            local is_water = function(obj)
+                return entity_manager.entity_name(obj) == "water"
+            end
             local neighbouring_hills = neighbours(height_map, i, j, is_lower)
+            local neighbouring_water = neighbours(obj_map, i, j, is_water)
+            neighbouring_hills = neighbouring_hills - neighbouring_water
             local x = 32 * math.floor(neighbouring_hills / 4)
             local y = 32 * (neighbouring_hills % 4)
             local hill_quad = love.graphics.newQuad(x, y, 32, 32, 256, 256)
