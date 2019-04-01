@@ -6,14 +6,17 @@ local function draw_renderable(entity)
     local visible = entity.components.renderable.visible
     if not visible then return end
     local x, y = unpack(entity.components.location.position)
+    local ox, oy = unpack(entity.components.renderable.offset or {0, 0})
+    local r = 0 -- TODO: get these from somewhere
+    local sx, sx = 1, 1
     local texture = entity.components.renderable.texture
     local colour = entity.components.renderable.colour
     local quad = entity.components.renderable.quad
     love.graphics.setColor(colour)
     if quad then
-        love.graphics.draw(texture, quad, x, y)
+        love.graphics.draw(texture, quad, x, y, r, sx, sy, ox, oy)
     else
-        love.graphics.draw(texture, x, y)
+        love.graphics.draw(texture, x, y, r, sx,sy, ox, oy)
     end
 end
 

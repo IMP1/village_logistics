@@ -17,12 +17,23 @@ local function click(system, mx, my, button, wx, wy)
     local selection = {}
     for _, entity in pairs(entity_manager.get_entities(filter)) do
         local x, y = unpack(entity.components.location.position)
+        local ox, oy = unpack(entity.components.selectable.offset or {0, 0})
         local leeway = entity.components.selectable.size
-        if is_over(x, y, wx, wy, leeway) then
+        local priority = entity.components.selectable.priority
+        if is_over(x - ox, y - oy, wx, wy, leeway) then
+            if #selection == 0 then
+                table.insert(selection, entity)
+            elseif selection[1].components.selectable.multiple and
+                   priority == selection[1].components.selectable.priority then
+                table.insert(selection, entity)
+            elseif priority > selection[1].components.selectable.priority then
+                selection = {}
+                table.insert(selection, entity)
+            end
             -- TODO: check priority + multiple
         end
     end
-    print(wx, wy)
+    print(#selection, "selected items.")
 end
 
 local function drag(system, mx, my, dx, dy, wx, wy)
