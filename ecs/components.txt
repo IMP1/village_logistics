@@ -1,0 +1,93 @@
+Components
+==========
+
+`viewport`
+For cameras or gui elements - defines where on the screen to display something.
+
+Necessary Parameters:
+  * bounds : {x, y, w, h} : where x and y coordinates of screen space in pixels,
+                            and w and h are the dimensions of screen space, also
+                            in pixels.
+
+
+`transform`
+For camera - defines where in the world to display.
+
+Necessary Parameters:
+  * translation : {x, y} : where x and y are the offset (position) in pixels to
+                           draw the world
+  * scale       : s      : where s is the scale factor at which to draw the 
+                           world.
+  * rotation    : r      : where r is the rotation in radians to draw the world.
+
+Optional Parameters:
+  * bounds : {a, b, c, d} : where a and b are the upper-leftmost possible
+                            coordinates in pixels the camera's transformation 
+                            can be, and c and d are the lower-rightmost possible
+                            coordinates in pixels the camera's transformation 
+                            can be.
+
+
+`map`
+For maps - defines the parameters for its generation.
+
+Necessary Parameters:
+  * width        : w     : width of the map in tiles.
+  * height       : h     : height of the map in tiles.
+  * setup_params : {...} : parameters for the generation of the map.
+      - forest_amount : x : determines how many forests there are.
+      - forest_size   : x : determines how big the forests are.
+      - forest_spread : x : also determines how big the forests are.
+      - hill_amount   : x : determines how many hills there are.
+      - hill_size     : x : determines how big the hills are.
+      - hill_smooth   : x : determines how steep the hills are.
+      - lake_amount   : x : determines how many lakes there are.
+      - lake_size     : x : determines how big the lakes are.
+      - river_amount  : x : determines how many rivers there are.
+      - river_bends   : x : determines how much the river meanders.
+
+`generatable`
+For procedurally generated content - is added so generation systems can pick it 
+up and generate values/content/properties/etc. - it is usually then removed by
+system.
+
+
+`location`
+For objects in the world - is used to keep track of the object's position in the
+world.
+
+Necessary Parameters:
+  * position : {x, y} : where x and y are coordinates in pixels.
+
+
+`renderable`
+For things to be drawn that exist within the world.
+
+Necessary Parameters:
+  * visible : v            : where v is true iff the thing is to be drawn, and 
+                             false otherwise.
+  * colour  : {r, g, b, a} : where r, g, b are the red, green and blue 
+                             components, respectively of the tint to draw the 
+                             object, and a is the alpha, or opacity.
+  * texture : t            : where t is the texture (image/spritebatch/canvas) 
+                             to draw.
+    OR
+  * shape   : {...}        : the polygon to be drawn.
+Optional Parameters:
+  * quad        : q            : where q is the quad to draw from the texture. 
+                                 If not supplied, the whole texture is drawn.
+  * fill_colour : {r, g, b, a} : if a shape is being drawn, this will be the 
+                                 colour of inside the shape.
+
+
+`selectable`
+
+`harvestable`
+
+`fluid`
+
+`harvester`
+
+`carrier`
+
+`moveable`
