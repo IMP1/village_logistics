@@ -20,7 +20,7 @@ return {
             -- path
         },
         location = {
-            position = {0, 0},
+            position = {100, 100},
         },
         renderable = {
             visible = true,

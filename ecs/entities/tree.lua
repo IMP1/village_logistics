@@ -13,7 +13,6 @@ return {
             texture = tree_image,
             quad    = love.graphics.newQuad(0, 0, 32, 48, 32, 144),
             colour  = {1, 1, 1},
-
         },
         harvestable = {
             resource   = "wood",
