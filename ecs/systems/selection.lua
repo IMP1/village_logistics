@@ -38,6 +38,7 @@ local function click(system, wx, wy, button)
         end
     end
     if #selection > 0 then
+        system_manager.broadcast("onselection", selection)
         selected_entities = selection
     end
 end
@@ -61,8 +62,11 @@ local function drag(system, wx, wy, dx, dy)
         end
     end
     if #selection > 0 then
+        system_manager.broadcast("onselection", selection)
         selected_entities = selection
     end
+    entity_manager.delete_entity(drag_rectangle)
+    drag_rectangle = nil
 end
 
 local function move(system, wx, wy, dx, dy, mouse_down, ox, oy)

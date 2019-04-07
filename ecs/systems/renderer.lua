@@ -14,7 +14,7 @@ local function draw_renderable(entity)
     local ox, oy = unpack(entity.components.renderable.offset or {0, 0})
     local r = 0 -- TODO: get these from somewhere
     local sx, sx = 1, 1
-    local colour = entity.components.renderable.colour
+    local colour = entity.components.renderable.colour or {1, 1, 1}
     local texture = entity.components.renderable.texture
     local shape = entity.components.renderable.shape
     
