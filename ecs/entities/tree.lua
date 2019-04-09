@@ -6,7 +6,7 @@ return {
     name = name,
     components = {
         location = {
-            position = {0, 0},
+            position = {0, 0, 1},
         },
         renderable = {
             visible = true,
