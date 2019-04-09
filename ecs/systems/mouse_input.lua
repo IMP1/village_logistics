@@ -12,8 +12,8 @@ local function mousedown(system, entity, mx, my, button)
     local ox, oy = unpack(entity.components.transform.translation)
     if button == 1 then
         mouse_movement = {mx + ox, my + oy}
+        mouse_down = true
     end
-    mouse_down = true
 end
 
 local function mouseup(system, entity, mx, my, button)
@@ -38,7 +38,7 @@ local function mousemoved(system, entity, mx, my, dx, dy)
     local wx = mx + ox
     local wy = my + oy
     local x, y = unpack(mouse_movement)
-    system_manager.broadcast("onpan", wx, wy, dx, dy, mouse_down, x, y, mx, my)
+    system_manager.broadcast("onmove", wx, wy, dx, dy, mouse_down, x, y, mx, my)
 end
 
 return {

@@ -139,7 +139,7 @@ return {
         onselection = entity_manager.filter_none,
         onclick     = entity_manager.filter_none,
         ondrag      = entity_manager.filter_none,
-        onpan       = entity_manager.filter_none,
+        onmove      = entity_manager.filter_none,
 
         add_component_selected    = entity_manager.filter_none,
         remove_component_selected = entity_manager.filter_none,
@@ -148,7 +148,7 @@ return {
         onselection = selection,
         onclick     = click,
         ondrag      = drag,
-        onpan       = move,
+        onmove      = move,
 
         add_component_selected    = selected,
         remove_component_selected = unselected,
