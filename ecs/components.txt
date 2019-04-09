@@ -57,7 +57,7 @@ For objects in the world - is used to keep track of the object's position in the
 world.
 
 Necessary Parameters:
-  * position : {x, y} : where x and y are coordinates in pixels.
+  * position : {x, y, z} : where x, y, and z are coordinates in pixels.
 
 
 `renderable`
@@ -72,7 +72,8 @@ Necessary Parameters:
   * texture : t            : where t is the texture (image/spritebatch/canvas) 
                              to draw.
     OR
-  * shape   : {...}        : the polygon to be drawn.
+  * shape   : {points}     : where points is a table containing the positions of 
+                             the verticies of the polygon to be drawn.
 Optional Parameters:
   * quad        : q            : where q is the quad to draw from the texture. 
                                  If not supplied, the whole texture is drawn.
