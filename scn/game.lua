@@ -16,7 +16,6 @@ function Scene.new()
     entity_manager.load_entity("ecs/entities/map.lua")
     system_manager.load_system("ecs/systems/map_generator.lua", true)
 
-    entity_manager.load_entity("ecs/entities/worker.lua")
     entity_manager.load_entity("ecs/entities/camera.lua")
 
     system_manager.load_system("ecs/systems/camera_input.lua", true)
