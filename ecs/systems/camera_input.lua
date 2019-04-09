@@ -4,9 +4,13 @@ local name = "camera_input"
 
 local MOVE_SPEED = 256 -- pixels / second
 
-local filter = entity_manager.component_filter("viewport", "transform")
+local console_filter = entity_manager.component_filter("console", "gui")
 
+local filter = entity_manager.component_filter("viewport", "transform")
 local function move(system, entity, dt)
+    if #entity_manager.get_entities(console_filter) > 0 then
+        return
+    end
     local dx, dy = 0, 0
     if love.keyboard.isDown("w") then
         dy = dy - MOVE_SPEED * dt
