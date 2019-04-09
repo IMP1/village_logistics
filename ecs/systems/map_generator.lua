@@ -18,7 +18,7 @@ local function add_tree(map, x, y)
 
     local tree = entity_manager.load_entity("ecs/entities/tree.lua")
     local location = entity_manager.get_component(tree, "location")
-    location.position = {(x-1) * 32, (y-1) * 32}
+    location.position = {(x-1) * 32, (y-1) * 32, 1}
 
     map[y][x] = tree
 
@@ -104,7 +104,7 @@ local function add_water(map, x, y, depth, origin, is_source)
 
     local water = entity_manager.load_entity("ecs/entities/water.lua")
     local location = entity_manager.get_component(water, "location")
-    location.position = {(x-1) * 32, (y-1) * 32}
+    location.position = {(x-1) * 32, (y-1) * 32, 0}
     -- TODO: fluid is unused
     local fluid = entity_manager.get_component(water, "fluid")
     fluid.depth     = depth
@@ -291,7 +291,7 @@ local function generate(system, entity)
         texture = background_texture,
     })
     entity_manager.add_component(entity.id, "location", {
-        position = {0, 0}
+        position = {0, 0, 0}
     })
 
     system_manager.disable_system(system.id)
