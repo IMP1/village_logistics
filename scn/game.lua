@@ -10,7 +10,7 @@ function Scene.new()
     local self = Base.new("game")
     setmetatable(self, Scene)
 
-    system_manager.set_entity_manager(entity_manager)
+    system_manager.bind(entity_manager)
     system_manager.hook()
 
     entity_manager.load_entity("ecs/entities/map.lua")
