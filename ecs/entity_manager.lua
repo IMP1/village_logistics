@@ -4,7 +4,8 @@ local entity_manager = {}
 
 entity_manager.filter_none = "NO_EVENTS"
 
-local entities = {} -- list of entities
+local entities       = {} -- list of entities
+local system_manager = nil
 
 local function new_entity(name)
     local new_id = uuid()
@@ -33,12 +34,26 @@ local function entity_has_components(entity, component_names)
     return true
 end
 
+function entity_manager.set_system_manager(manager)
+    system_manager = manager
+end
+
+function entity_manager.bind(system_manager)
+    entity_manager.set_system_manager(system_manager)
+    system_manager.set_entity_manager(entity_manager)
+end
+
 function entity_manager.component_filter(...)
     local component_names = {...}
     local filter = function(entity)
         return entity_has_components(entity, component_names)
     end
     return filter
+end
+
+function entity_manager.get_entity(entity_id)
+    local index = entity_index(entity_id)
+    return entities[index]
 end
 
 function entity_manager.get_entities(filter)
@@ -105,6 +120,10 @@ function entity_manager.add_component(entity_id, component_name, options)
         print("WARNING: " .. string.format(message, entity.name, component_name))
     end
     entity.components[component_name] = (options or {})
+
+    if system_manager then
+        system_manager.broadcast("add_component_" .. component_name, entity)
+    end
 end
 
 function entity_manager.get_component(entity_id, component_name)
@@ -121,6 +140,11 @@ function entity_manager.remove_component(entity_id, component_name)
     end
 
     local entity = entities[index]
+    
+    if system_manager then
+        system_manager.broadcast("remove_component_" .. component_name, entity)
+    end
+    
     entity.components[component_name] = nil
 end
 

@@ -46,6 +46,11 @@ function system_manager.set_entity_manager(manager)
     entity_manager = manager
 end
 
+function system_manager.bind(entity_manager)
+    system_manager.set_entity_manager(entity_manager)
+    entity_manager.set_system_manager(system_manager)
+end
+
 function system_manager.load_system(path, enable)
     if not love.filesystem.exists(path) then
         error(string.format("Could not find system '%s'", path))
