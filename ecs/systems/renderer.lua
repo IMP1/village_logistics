@@ -46,7 +46,17 @@ local function draw_world(camera)
     love.graphics.translate(-ox, -oy)
     -- TODO: rotate and scale as well
 
-    for _, entity in pairs(entity_manager.get_entities(world_filter)) do
+    local entities = entity_manager.get_entities(world_filter)
+    table.sort(entities, function(a, b) 
+        local a_layer = a.components.renderable.layer or a.components.location.position[3] or 0
+        local b_layer = b.components.renderable.layer or b.components.location.position[3] or 0
+        if a_layer == b_layer then
+            return a.components.location.position[2] < b.components.location.position[2]
+        else
+            return a_layer < b_layer
+        end
+    end)
+    for _, entity in pairs(entities) do
         draw_renderable(entity)
     end
     for _, entity in pairs(entity_manager.get_entities(overlay_filter)) do
