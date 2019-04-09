@@ -109,12 +109,17 @@ function entity_manager.delete_entity(entity_id)
 end
 
 function entity_manager.add_component(entity_id, component_name, options)
-    local index = entity_index(entity_id)
-    if index == 0 then
-        return
+    local entity
+    if type(entity_id) == "table" and entity_id.components then
+        entity = entity_id
+    else
+        local index = entity_index(entity_id)
+        if index == 0 then
+            return
+        end
+        entity = entities[index]
     end
 
-    local entity = entities[index]
     if entity.components[component_name] then
         local message = "Entity '%s' already has component '%s'. Replacing its values."
         print("WARNING: " .. string.format(message, entity.name, component_name))
@@ -134,12 +139,17 @@ function entity_manager.get_component(entity_id, component_name)
 end
 
 function entity_manager.remove_component(entity_id, component_name)
-    local index = entity_index(entity_id)
-    if index == 0 then
-        return
+    local entity
+    if type(entity_id) == "table" and entity_id.components then
+        entity = entity_id
+    else
+        local index = entity_index(entity_id)
+        if index == 0 then
+            return
+        end
+        entity = entities[index]
     end
 
-    local entity = entities[index]
     
     if system_manager then
         system_manager.broadcast("remove_component_" .. component_name, entity)
