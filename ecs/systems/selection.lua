@@ -3,7 +3,6 @@ local system_manager = require 'ecs.system_manager'
 
 local name = "unit_selection"
 
-local selected_entities = {}
 local drag_rectangle = nil
 
 local filter = entity_manager.component_filter("selectable", "location")
@@ -39,7 +38,6 @@ local function click(system, wx, wy, button)
     end
     if #selection > 0 then
         system_manager.broadcast("onselection", selection)
-        selected_entities = selection
     end
 end
 
@@ -49,6 +47,7 @@ local function drag(system, wx, wy, dx, dy)
         local x, y = unpack(entity.components.location.position)
         local ox, oy = unpack(entity.components.selectable.offset or {0, 0})
         local priority = entity.components.selectable.priority
+        -- TODO: create a rectangle using min to get top-left and max to get bottom-right
         if is_in(x - ox, y - oy, wx-dx, wy-dy, dx, dy) then
             if #selection == 0 then
                 table.insert(selection, entity)
@@ -63,7 +62,6 @@ local function drag(system, wx, wy, dx, dy)
     end
     if #selection > 0 then
         system_manager.broadcast("onselection", selection)
-        selected_entities = selection
     end
     entity_manager.delete_entity(drag_rectangle)
     drag_rectangle = nil
@@ -80,7 +78,7 @@ local function move(system, wx, wy, dx, dy, mouse_down, ox, oy)
     if not drag_rectangle then
         drag_rectangle = entity_manager.create_entity("drag_rectangle")
         entity_manager.add_component(drag_rectangle, "location", {
-            position = {}
+            position = {0, 0}
         })
         entity_manager.add_component(drag_rectangle, "renderable", {
             visible = true,
@@ -96,16 +94,63 @@ local function move(system, wx, wy, dx, dy, mouse_down, ox, oy)
     shape.points = {x1, y1, x2, y1, x2, y2, x1, y2}
 end
 
+local selected_filter = entity_manager.component_filter("selected")
+local function selection(system, newly_selected_entities)
+    for _, entity in pairs(entity_manager.get_entities(selected_filter)) do
+        entity_manager.remove_component(entity.id, "selected")
+    end
+    for _, entity in pairs(newly_selected_entities) do
+        entity_manager.add_component(entity, "selected")
+    end
+end
+
+local function unselected(system, entity)
+    local indication = entity.components.selected.indication
+    if indication then
+        entity_manager.delete_entity(indication)
+    end
+end
+
+local function selected(system, entity)
+    if entity.components.renderable then
+        local indication = entity_manager.create_entity("selection_indication")
+        local entity_location = entity.components.location
+        entity_manager.add_component(indication, "location", entity_location)
+        local icon = love.graphics.newCanvas(100, 100)
+        love.graphics.setCanvas(icon)
+        love.graphics.ellipse("line", 50, 50, 25, 20)
+        love.graphics.setCanvas()
+
+        entity_manager.add_component(indication, "renderable", {
+            visible = true,
+            colour  = {1, 1, 0}, 
+            texture = icon,
+            offset  = {50, 50},
+            layer   = 0.5
+        })
+        local selected = entity.components.selected
+        selected.indication = indication
+    end
+end
+
 return {
     name    = name,
     filters = { 
-        onclick = entity_manager.filter_none,
-        ondrag  = entity_manager.filter_none,
-        onpan   = entity_manager.filter_none,
+        onselection = entity_manager.filter_none,
+        onclick     = entity_manager.filter_none,
+        ondrag      = entity_manager.filter_none,
+        onpan       = entity_manager.filter_none,
+
+        add_component_selected    = entity_manager.filter_none,
+        remove_component_selected = entity_manager.filter_none,
     },
     events  = { 
-        onclick = click,
-        ondrag  = drag,
-        onpan   = move,
+        onselection = selection,
+        onclick     = click,
+        ondrag      = drag,
+        onpan       = move,
+
+        add_component_selected    = selected,
+        remove_component_selected = unselected,
     },
 }
