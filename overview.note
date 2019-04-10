@@ -3,11 +3,28 @@ Village Logistics
 
 # systems
 
-  - [ ] water handling (fluid in general?)
-  - [ ] movement
-  - [X] rendering
   - [X] camera
+  - [X] rendering
+  - [X] map generation
+  - [X] pawn selection
+  - [X] debugging console
   - [ ] commands given to pawns
-  - [ ] map generation
+  - [ ] movement
+  - [ ] harvesting
+  - [ ] carrying
+  - [ ] plant growing
+  - [ ] production
+  - [ ] water handling (fluid in general?)
   - [ ] lighting (pixel art shader? high max number of lights (99999) and an int for how many there are.)
   - [ ] 
+
+
+# themes
+
+automation and maximising efficiency
+
+harvesting  (cutting trees)
+carrying    (moving from A to B)
+production  (trunks -> logs/planks/etc; wheat -> flour)
+automation  (sawmill/flourmill powered by wind/water/steam/etc.)
+

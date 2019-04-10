@@ -68,7 +68,10 @@ local function draw_world(camera)
 end
 
 local function draw_gui_element(entity)
-    -- TODO: draw GUI elements
+    local gui = entity.components.gui
+    if gui.draw then
+        gui.draw()
+    end
 end
 
 local function draw_gui()
