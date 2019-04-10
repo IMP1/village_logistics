@@ -15,6 +15,9 @@ return {
         carrier = {
             -- resource limits?
         },
+        producer = {
+            -- work speed?
+        },
         moveable = {
             -- speed
             -- path
