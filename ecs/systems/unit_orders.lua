@@ -72,28 +72,45 @@ local function create_command_options(wx, wy)
             print(cmd.action, cmd.object.name)
             local x, y = unpack(cmd.object.components.location.position)
             local button = entity_manager.create_entity("button")
-            print(x-10, y-32)
+
+            local action
+            if cmd.action == "produce" then
+                action = function(entity)
+                    -- @TODO: open building menu for production
+                end
+            elseif cmd.action == "carry" then
+                action = function(entity)
+                    -- @TODO: have next clicked place be target of carrying
+                end
+            elseif cmd.action == "harvest" then
+                action = function(entity)
+                    -- @TODO: if can also carry, have option to just harvest in place, 
+                    --        or harvest and carry
+                end
+            end
+
             entity_manager.add_component(button, "location", {
                 position = {x-10, y - 32},
             })
             entity_manager.add_component(button, "gui", {
-                draw = function() 
+                draw = function(entity) 
                     -- @TODO: have icons for action. draw more than a red square.
+                    local char = cmd.action:sub(1, 1)
                     love.graphics.setColor(1, 0, 0)
                     love.graphics.rectangle("fill", 0, 0, 20, 20)
-                    -- @TODO: some actions will need something else to be selected,
-                    --        and so should create a new list of available_actions.
-                    -- @TODO: some actions should fire off to give the units jobs,
-                    --        and should delete any buttons, and clear the available_actions.
-
-                    -- @TODO: should harvest + carry be an option? Yeah! If the worker can do both, 
-                    --        and the resource generated from harvesting can be carried by them, then sure!
+                    love.graphics.setColor(0, 0, 0)
+                    love.graphics.print(char, 0, 0)
                 end,
+                is_over = function(entity, mx, my)
+                    local x, y = unpack(entity.components.location.position)
+                    return mx >= x and mx <= x + 20 and my >= y - 50 and my <= y + 50
+                end,
+                click = action,
             })
             cmd.button = button
         end
-        avaialble_actions = possible_commands
     end
+    avaialble_actions = possible_commands
 end
 
 local function select_command(wx, wy)

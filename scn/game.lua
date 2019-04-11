@@ -31,6 +31,7 @@ function Scene.new()
     system_manager.load_system("ecs/systems/mouse_input.lua", true)
     system_manager.load_system("ecs/systems/selection.lua", true)
     system_manager.load_system("ecs/systems/unit_orders.lua", true)
+    system_manager.load_system("ecs/systems/gui_handler.lua", true)
     
     system_manager.load_system("ecs/systems/debugger.lua", true)
 
