@@ -1,6 +1,13 @@
 local entity_manager = require 'ecs.entity_manager'
 local system_manager = require 'ecs.system_manager'
 
+-- GLOBAL DEBUG FUNCTION
+local oldprint = print
+function print(...)
+    oldprint(...)
+    system_manager.broadcast("debug_message", ...)
+end
+
 local Base = require 'scn.base'
 local Scene = {}
 setmetatable(Scene, Base)
