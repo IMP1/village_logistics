@@ -9,8 +9,8 @@ return {
             position = {0, 0, 1},
         },
         resource = {
-            amount    = 1,
-            unit_mass = 1,
+            amount    = 1, -- number of units in this stack
+            unit_mass = 1, -- kg per unit
         },
         renderable = {
             visible = true,

@@ -14,6 +14,12 @@ local function selection(system, newly_selected_entities)
     avaialble_actions = {}
 end
 
+-- @NOTE: a lot of this gets much easier if you can't select more than one worker.
+--        how great is the benefit to the player for that? when/how often do you
+--        want more than one worker doing the same job?
+
+-- @TODO: change to be one selected_unit
+
 local function get_options()
     local harvest = true
     local carry   = true
@@ -32,7 +38,6 @@ local function get_options()
     end
     return {
         harvest = harvest,
-        foobar  = 12,
         carry   = carry,
         produce = produce,
     }
@@ -75,17 +80,21 @@ local function create_command_options(wx, wy)
 
             local action
             if cmd.action == "produce" then
-                action = function(entity)
+                action = function(gui_entity)
                     -- @TODO: open building menu for production
                 end
             elseif cmd.action == "carry" then
-                action = function(entity)
+                action = function(gui_entity)
                     -- @TODO: have next clicked place be target of carrying
                 end
             elseif cmd.action == "harvest" then
-                action = function(entity)
-                    -- @TODO: if can also carry, have option to just harvest in place, 
-                    --        or harvest and carry
+                action = function(gui_entity)
+                    local resource = entity_manager.load_blueprint(cmd.object.components.harvestable.resource)
+                    print("mass of " .. resource.name .. " is " .. resource.components.resource.unit_mass .. "kg.")
+                    if 
+                    -- @TODO: need to check if resource that would be created by harvesting can be carried.
+                    --        and if it if can, and the worker can also carry, have both options of just 
+                    --        harvesting in place, or harvest and carry.
                 end
             end
 

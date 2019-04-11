@@ -16,7 +16,7 @@ return {
             offset  = {16, 48},
         },
         harvestable = {
-            resource   = "wood",
+            resource   = "ecs/entities/wood.lua",
             max_amount = 100,
             amount     = 100,
             work_time  = 0.5, -- seconds / amount

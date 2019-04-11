@@ -78,11 +78,15 @@ function entity_manager.entity_name(entity_id)
     return entities[index].name
 end
 
-function entity_manager.load_entity(path)
+function entity_manager.load_blueprint(path)
     if not love.filesystem.exists(path) then
         error(string.format("Could not find entity '%s'", path))
     end
-    local data = love.filesystem.load(path)()
+    return love.filesystem.load(path)()
+end
+
+function entity_manager.load_entity(path)
+    local data = entity_manager.load_blueprint(path)
     if data.id then 
         -- loading from save file
         table.insert(entities, data)

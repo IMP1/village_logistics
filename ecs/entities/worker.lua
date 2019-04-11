@@ -13,6 +13,7 @@ return {
             -- harvest speeds?
         },
         carrier = {
+            max_weight = 2, -- kg
             -- resource limits?
         },
         producer = {
