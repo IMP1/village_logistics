@@ -38,6 +38,16 @@ local function draw_renderable(entity)
     end
 end
 
+local function draw_overlay(entity)
+    local hidden = entity.components.gui.hidden
+    if hidden then return end
+    local x, y = unpack(entity.components.location.position)
+    love.graphics.push()
+    love.graphics.translate(x, y)
+    entity.components.gui.draw()
+    love.graphics.pop()
+end
+
 local function draw_world(camera)
     love.graphics.push()
     local x, y, w, h = unpack(camera.components.viewport.bounds)
@@ -60,7 +70,7 @@ local function draw_world(camera)
         draw_renderable(entity)
     end
     for _, entity in pairs(entity_manager.get_entities(overlay_filter)) do
-        draw_renderable(entity)
+        draw_overlay(entity)
     end
 
     love.graphics.setScissor()
@@ -68,6 +78,7 @@ local function draw_world(camera)
 end
 
 local function draw_gui_element(entity)
+    -- @TODO: use the entity's viewport
     local gui = entity.components.gui
     if gui.draw then
         gui.draw()
