@@ -11,8 +11,9 @@ return {
         renderable = {
             visible = true,
             texture = tree_image,
-            quad    = love.graphics.newQuad(0, 0, 32, 48, 32, 144),
             colour  = {1, 1, 1},
+            quad    = love.graphics.newQuad(0, 0, 32, 48, 32, 144),
+            offset  = {16, 48},
         },
         harvestable = {
             resource   = "wood",
