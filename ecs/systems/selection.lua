@@ -118,6 +118,7 @@ local function selected(system, entity)
         entity_manager.add_component(indication, "location", entity_location)
         local icon = love.graphics.newCanvas(100, 100)
         love.graphics.setCanvas(icon)
+        love.graphics.setColor(1, 1, 0)
         love.graphics.ellipse("line", 50, 50, 25, 20)
         love.graphics.setCanvas()
 
