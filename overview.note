@@ -16,9 +16,9 @@ All systems in the game:
   - [X] map generation
   - [X] pawn selection
   - [X] debugging console
-  - [ ] commands given to pawns
+  - [X] commands given to pawns
   - [ ] movement
-  - [ ] harvesting
+  - [X] harvesting
   - [ ] carrying
   - [ ] plant growing
   - [ ] production
