@@ -16,11 +16,10 @@ local function update(system, worker, dt)
     local dr = source.components.harvestable.reach
 
     if dx*dx + dy*dy > dr*dr then
-
-        print("too far away: pathing...")
-        
-
-        -- @TODO: path to the object.
+        if worker.components.moveable and not worker.components.moveable.path then
+            local path = pathfinder.path({wx, wy}, {rx, ry})
+            worker.components.moveable.path = path
+        end
     else
         if not job.timer then
             job.timer = 0
@@ -35,7 +34,7 @@ local function update(system, worker, dt)
             local resource = entity_manager.get_entity(resource_id)
 
             resource.components.resource.amount = amount
-            resource.components.location.position = unpack(worker.components.location.position)
+            resource.components.location.position = {unpack(worker.components.location.position)}
 
         end
 
