@@ -18,51 +18,64 @@ local function is_in(x, y, ox, oy, w, h)
 end
 
 local function click(system, wx, wy, button)
-    local selection = {}
+    if button ~= 1 then return end
+
+    local selection = nil
+    local nearest_distance_squared = 0
+
     for _, entity in pairs(entity_manager.get_entities(filter)) do
         local x, y = unpack(entity.components.location.position)
         local ox, oy = unpack(entity.components.selectable.offset or {0, 0})
+        x = x - ox
+        y = y - oy
         local leeway = entity.components.selectable.size
         local priority = entity.components.selectable.priority
-        if is_over(x - ox, y - oy, wx, wy, leeway) then
-            if #selection == 0 then
-                table.insert(selection, entity)
-            elseif selection[1].components.selectable.multiple and
-                   priority == selection[1].components.selectable.priority then
-                table.insert(selection, entity)
-            elseif priority > selection[1].components.selectable.priority then
-                selection = {}
-                table.insert(selection, entity)
+        local distance_squared = (x - wx)*(x - wx) + (y - wy)*(y - wy)
+        if is_over(x, y, wx, wy, leeway) then
+            if selection == nil then
+                selection = entity
+                nearest_distance_squared = distance_squared
+            elseif priority > selection.components.selectable.priority then
+                selection = entity
+                nearest_distance_squared = distance_squared
+            elseif priority == selection.components.selectable.priority and
+                   distance_squared < nearest_distance_squared then
+                selection = entity
+                nearest_distance_squared = distance_squared
             end
         end
     end
-    if #selection > 0 then
+
+    if selection then
         system_manager.broadcast("onselection", selection)
     end
 end
 
 local function drag(system, wx, wy, dx, dy)
-    local selection = {}
+    local selection = nil
+
+    local x1, x2 = math.min(wx, wx-dx), math.max(wx, wx-dx)
+    local y1, y2 = math.min(wy, wy-dy), math.max(wy, wy-dy)
+
     for _, entity in pairs(entity_manager.get_entities(filter)) do
         local x, y = unpack(entity.components.location.position)
         local ox, oy = unpack(entity.components.selectable.offset or {0, 0})
+        x = x - ox
+        y = y - oy
         local priority = entity.components.selectable.priority
-        -- TODO: create a rectangle using min to get top-left and max to get bottom-right
-        if is_in(x - ox, y - oy, wx-dx, wy-dy, dx, dy) then
-            if #selection == 0 then
-                table.insert(selection, entity)
-            elseif selection[1].components.selectable.multiple and
-                   priority == selection[1].components.selectable.priority then
-                table.insert(selection, entity)
-            elseif priority > selection[1].components.selectable.priority then
-                selection = {}
-                table.insert(selection, entity)
+        if is_in(x, y, x1, y1, x2-x1, y2-y1) then
+            if selection == nil then
+                selection = entity
+            elseif priority > selection.components.selectable.priority then
+                selection = entity
             end
         end
     end
-    if #selection > 0 then
+
+    if selection then
         system_manager.broadcast("onselection", selection)
     end
+
     entity_manager.delete_entity(drag_rectangle)
     drag_rectangle = nil
 end
@@ -95,23 +108,23 @@ local function move(system, wx, wy, dx, dy, mouse_down, ox, oy)
 end
 
 local selected_filter = entity_manager.component_filter("selected")
-local function selection(system, newly_selected_entities)
+local function selection(system, newly_selected_entity)
     for _, entity in pairs(entity_manager.get_entities(selected_filter)) do
         entity_manager.remove_component(entity.id, "selected")
     end
-    for _, entity in pairs(newly_selected_entities) do
-        entity_manager.add_component(entity, "selected")
+    if newly_selected_entity then    
+        entity_manager.add_component(newly_selected_entity, "selected")
     end
 end
 
-local function unselected(system, entity)
+local function delete_indication(system, entity)
     local indication = entity.components.selected.indication
     if indication then
         entity_manager.delete_entity(indication)
     end
 end
 
-local function selected(system, entity)
+local function create_indication(system, entity)
     if entity.components.renderable then
         local indication = entity_manager.create_entity("selection_indication")
         local entity_location = entity.components.location
@@ -151,7 +164,7 @@ return {
         ondrag      = drag,
         onmove      = move,
 
-        add_component_selected    = selected,
-        remove_component_selected = unselected,
+        add_component_selected    = create_indication,
+        remove_component_selected = delete_indication,
     },
 }
