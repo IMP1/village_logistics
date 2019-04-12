@@ -95,6 +95,42 @@ local function meta_debug(system, command, ...)
     end
 end
 
+local function show_details(system, command, ...)
+    local args = {...}
+    if command == "selection" then
+        for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("selectable", "location"))) do
+            local indicator
+            if entity.components.indicated then
+                indicator = entity_manager.get_entity(entity.components.indicated.indicator)
+            else
+                local indicator_id = entity_manager.create_entity("indicator")
+                entity_manager.add_component(indicator_id, "indicated", { indicator = indicator_id })
+                entity_manager.add_component(indicator_id, "debug-selector")
+                entity_manager.add_component(indicator_id, "location")
+                entity_manager.add_component(indicator_id, "gui")
+                indicator = entity_manager.get_entity(indicator_id)
+            end
+            indicator.components.location.position = {0, 0}
+            indicator.components.gui.draw = function(gui_entity)
+                local x, y = unpack(entity.components.location.position)
+                local ox, oy = unpack(entity.components.selectable.offset)
+                local r = entity.components.selectable.size
+                love.graphics.setColor(0, 0, 1)
+                love.graphics.circle("line", x - ox, y - oy, r)
+            end
+        end
+    end
+end
+
+local function hide_details(system, command, ...)
+    local args = {...}
+    if command == "selection" then
+        for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("debug-selector"))) do
+            entity_manager.delete_entity(entity.id)
+        end
+    end
+end
+
 local function debug_message(system, ...)
     local message = ""
     for _, msg in ipairs({...}) do
@@ -122,6 +158,8 @@ return {
 
         command_spawn = entity_manager.filter_none,
         command_debug = entity_manager.filter_none,
+        command_show  = entity_manager.filter_none,
+        command_hide  = entity_manager.filter_none,
         debug_message = entity_manager.filter_none,
         draw          = entity_manager.filter_none,
     },
@@ -132,6 +170,8 @@ return {
 
         command_spawn = spawn_object,
         command_debug = meta_debug,
+        command_show  = show_details,
+        command_hide  = hide_details,
         debug_message = debug_message,
         draw          = draw,
     },
