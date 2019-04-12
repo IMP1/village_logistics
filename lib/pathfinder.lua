@@ -1,12 +1,64 @@
+--[[ USAGE:
+
+To setup pathfinder with a map, call the following function:
+    pathfinder.map(map)
+where the `map` parameter is a table with a field called nodes.
+The nodes field should be a list of node tables. These tables should have a polygon field which is a list of points.
+
+To use pathfinder to generate a path between two points, call the following function:
+    pathfinder.path(starting_point, target_point, agent_size, max_agent_jump, max_agent_fall)
+where `starting_point` is a list of two co-ordinates, as is `target_point`. 
+`agent_size` is used to determine how much space to give when rounding corners.
+`max_agent_jump` and `max_agent_fall` are used to determine whether a path exists between two nodes in terms of verticality, 
+going up and down, respectively.
+
+--]]
+
+require 'lib.astar'
+
+local pathfinder = {
+    _VERSION     = 'v0.2.0',
+    _DESCRIPTION = [[
+        A pathfinding system for lua. It requires the astar module from RapidFire Studio 
+        Limited, which is under the MIT license. It can use a map of differing convex polygons.
+    ]],
+    _URL         = '',
+    _LICENSE     = [[
+        MIT License
+
+        Copyright (c) 2017 Huw Taylor
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+    ]],
+}
+
 -- Look at:
 --   * https://www.gamedev.net/forums/topic/669843-the-simple-funnel-algorithm-pre-visited/
 --   * [great paper on pathfinding using navmeshes](http://paper.ijcsns.org/07_book/201212/20121208.pdf)
 --   * http://www.koffeebird.com/2014/05/towards-modified-simple-stupid-funnel.html
 --   * http://digestingduck.blogspot.co.uk/2010/03/simple-stupid-funnel-algorithm.html
 
-require 'lib.astar'
+local DEFAULT_POSSIBLE_JUMP = 4
+local DEFAULT_POSSIBLE_FALL = 4
 
-local pathfinder = {}
+local acceptable_height_jump = 4
+local acceptable_height_fall = 4
 
 local map = {}
 
@@ -52,6 +104,17 @@ local function polygon_contains_point(polygon, point, line_is_inside)
     return true
 end
 
+local function shared_vertex(polygon1, polygon2)
+    for i = 1, #polygon1, 2 do
+        for j = 1, #polygon2, 2 do
+            if polygon1[i] == polygon2[j] and polygon1[i+1] == polygon2[j+1] then
+                return { polygon1[i], polygon1[i+1] }
+            end
+        end
+    end
+    return nil
+end
+
 local function shared_line_segment(polygon1, polygon2)
     for line_start_x = 1, #polygon1, 2 do
         local line_start_y = line_start_x + 1
@@ -88,7 +151,26 @@ local function shared_line_segment(polygon1, polygon2)
 end
 
 local function adjacent_node_function(node, neighbour)
-    return shared_line_segment(node, neighbour)
+    -- if shared_line_segment(node.polygon, neighbour.polygon) then
+    --     p(node)
+    --     p(neighbour)
+    --     p(shared_line_segment(node.polygon, neighbour.polygon))
+    --     print("\n\n")
+    -- end
+    if neighbour.impassable then 
+        return false 
+    end
+
+    local height_difference = (neighbour.height or 0) - (node.height or 0)
+    if height_difference > acceptable_height_jump then
+        return false 
+    end
+    if height_difference < -acceptable_height_fall then
+        return false
+    end
+    
+    -- return shared_line_segment(node.polygon, neighbour.polygon)
+    return shared_vertex(node.polygon, neighbour.polygon)
 end
 
 local function offset_corner_point(corner_point, line_segments, offset)
@@ -121,13 +203,13 @@ local function offset_corner_point(corner_point, line_segments, offset)
 end
 
 
-local function funnel(start_point, target_point, polygon_path, agent_size)
+local function funnel(start_point, target_point, node_path, agent_size)
     local point_path = {}
 
     -- create line segments (referred to as 'portals' in most articles)
     local line_segments = {}
-    for i = 1, #polygon_path-1 do
-        line_segment = shared_line_segment(polygon_path[i], polygon_path[i+1])
+    for i = 1, #node_path-1 do
+        line_segment = shared_line_segment(node_path[i].polygon, node_path[i+1].polygon)
         table.insert(line_segments, line_segment)
     end
     -- add target point as a final line segment to cross.
@@ -225,44 +307,67 @@ local function funnel(start_point, target_point, polygon_path, agent_size)
     return point_path
 end
 
-function pathfinder.map(newMap)
-    if newMap == nil then
+function pathfinder.map(new_map)
+    if new_map == nil then
         return map
     else
-        map = newMap
+        map = new_map
+        for _, node in pairs(map.nodes) do
+            local centre_x = 0
+            local centre_y = 0
+            for i = 1, #node.polygon, 2 do
+                centre_x = centre_x + node.polygon[i]
+                centre_y = centre_y + node.polygon[i+1]
+            end
+            centre_x = centre_x / (#node.polygon / 2)
+            centre_y = centre_y / (#node.polygon / 2)
+            node.position = {centre_x, centre_y}
+        end
     end
 end
 
-function pathfinder.path(starting_point, target_point, agent_size)
-    local starting_polygon = nil
-    local target_polygon = nil
+function pathfinder.path(starting_point, target_point, agent_size, max_agent_jump, max_agent_fall)
+    local starting_node = nil
+    local target_node = nil
 
-    for _, polygon in pairs(map) do
-        if polygon_contains_point(polygon, starting_point) then
-            starting_polygon = polygon
+    for _, node in pairs(map.nodes) do
+        if polygon_contains_point(node.polygon, starting_point) then
+            starting_node = node
         end
-        if polygon_contains_point(polygon, target_point) then
-            target_polygon = polygon
+        if polygon_contains_point(node.polygon, target_point) then
+            target_node = node
         end
     end
 
-    if starting_polygon == nil then
+    if starting_node == nil then
         print("could not locate starting polygon. starting point = " .. starting_point[1] .. ", " .. starting_point[2])
         return nil
     end
-    if target_polygon == nil then
+    if target_node == nil then
         print("could not locate target polygon. target point = " .. target_point[1] .. ", " .. target_point[2])
         return nil
     end
 
     local point_path = {}
 
-    if starting_polygon ~= target_polygon then
-        local polygon_path = astar.path(starting_polygon, target_polygon, map, false, adjacent_node_function) -- a* with polygons
-        if polygon_path then
-            point_path = funnel(starting_point, target_point, polygon_path, (agent_size or 0))
+    if max_agent_jump then
+        acceptable_height_jump = max_agent_jump
+    else
+        acceptable_height_jump = DEFAULT_POSSIBLE_JUMP
+    end
+    if max_agent_fall then
+        acceptable_height_fall = max_agent_fall
+    else
+        acceptable_height_fall = DEFAULT_POSSIBLE_FALL
+    end
+
+    if starting_node ~= target_node then
+        local node_path = astar.path(starting_node, target_node, map.nodes, false, adjacent_node_function) -- a* with polygons
+        if node_path then
+            point_path = funnel(starting_point, target_point, node_path, (agent_size or 0))
         else
-            error("No path. D:")
+            print("could not find a path between the two polygons.")
+            return nil
         end
     end
 
