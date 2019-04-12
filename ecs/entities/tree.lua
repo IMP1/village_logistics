@@ -8,6 +8,11 @@ return {
         location = {
             position = {0, 0, 1},
         },
+        selectable = {
+            priority = 1,
+            size     = 32,      -- radius around location
+            offset   = {0, 24}, -- from location in world
+        },
         renderable = {
             visible = true,
             texture = tree_image,

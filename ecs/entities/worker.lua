@@ -4,10 +4,9 @@ return {
     name = name,
     components = {
         selectable = {
-            multiple = true,
             priority = 10,
             size     = 32,       -- radius around location
-            offset   = {16, 24}, -- from location in world
+            offset   = {0, 24}, -- from location in world
         },
         harvester = {
             -- harvest speeds?

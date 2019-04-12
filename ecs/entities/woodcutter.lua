@@ -8,13 +8,18 @@ return {
         location = {
             position = {0, 0, 1},
         },
+        selectable = {
+            priority = 5,
+            size     = 32,       -- radius around location
+            offset   = {16, 24}, -- from location in world
+        },
         renderable = {
             visible = true,
             texture = tree_image,
             quad    = love.graphics.newQuad(0, 0, 32, 48, 32, 144),
             colour  = {1, 1, 1},
         },
-        producer = {
+        production = {
             recipes = {
                 {
                     inputs = {
