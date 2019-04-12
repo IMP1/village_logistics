@@ -1,7 +1,15 @@
-Village Logistics
-=================
+# Village Logistics
 
-# Systems
+## Systems
+
+Main gameplay systems that will be apparent to the player:
+
+  * harvesting  (cutting trees)
+  * carrying    (moving from A to B)
+  * production  (trunks -> logs/planks; wheat -> flour)
+  * automation  (sawmill/flourmill powered by wind/water/steam/etc.)
+
+All systems in the game:
 
   - [X] camera
   - [X] rendering
@@ -19,12 +27,13 @@ Village Logistics
   - [ ] 
 
 
-# Themes
+## Themes
 
-automation and maximising efficiency
+Automation and maximising efficiency
 
-harvesting  (cutting trees)
-carrying    (moving from A to B)
-production  (trunks -> logs/planks/etc; wheat -> flour)
-automation  (sawmill/flourmill powered by wind/water/steam/etc.)
 
+## TODO Today
+
+  - [ ] unit orders
+  - [ ] unit pathing
+  - [ ] 
