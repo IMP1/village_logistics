@@ -1,5 +1,6 @@
 local pathfinder     = require 'lib.pathfinder'
 local entity_manager = require 'ecs.entity_manager'
+local system_manager = require 'ecs.system_manager'
 
 local name = "job_harvest_handler"
 
@@ -28,14 +29,22 @@ local function update(system, worker, dt)
 
         if job.timer >= source.components.harvestable.work_time then
             local amount = math.floor(job.timer / source.components.harvestable.work_time)
+            amount = math.min(amount, source.components.harvestable.amount)
             job.timer = job.timer - source.components.harvestable.work_time
+
+            -- @TODO: check for near enough existing resource of same type and add to that stack.
 
             local resource_id = entity_manager.load_entity(source.components.harvestable.resource)
             local resource = entity_manager.get_entity(resource_id)
 
             resource.components.resource.amount = amount
             resource.components.location.position = {unpack(worker.components.location.position)}
+            source.components.harvestable.amount = source.components.harvestable.amount - amount
 
+            system_manager.broadcast("onharvest", source, worker)
+
+            -- @TODO: what when runs out? 
+            --        replace this job with one to go to nearest entity of same resource type and harvest that.
         end
 
     end

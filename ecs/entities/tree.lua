@@ -24,17 +24,17 @@ return {
             resource   = "ecs/entities/wood.lua",
             reach      = 32,
             max_amount = 100,
-            amount     = 100,
+            amount     = 10,
             work_time  = 0.5, -- seconds / amount
             on_exhaust = function() end,
             stages     = {
                 {
-                    count = 80,
+                    count = 8,
                     image = tree_image,
                     quad = love.graphics.newQuad(0, 0, 32, 48, 32, 144),
                 },
                 {
-                    count = 30,
+                    count = 3,
                     image = tree_image,
                     quad = love.graphics.newQuad(0, 48, 32, 48, 32, 144),
                 },

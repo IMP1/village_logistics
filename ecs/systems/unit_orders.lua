@@ -101,13 +101,14 @@ local function create_command_options(wx, wy)
                 icon = "HC"
             elseif cmd.action == "harvest" then
                 action = function(gui_entity)
-                    -- @TODO: engage in harvesting
                     entity_manager.add_component(selected_unit, "job_harvest", {
                         resource_entity = cmd.object.id,
                     })
                 end
                 icon = "H"
             end
+
+            -- @TODO: remove button once selected.
 
             local ox, oy = unpack(cmd.object.components.location.position)
             local button = entity_manager.create_entity("button")
@@ -138,6 +139,7 @@ local function create_command_options(wx, wy)
             })
             cmd.button = button
         end
+    -- @TODO: else just move the unit to the location?
     end
     avaialble_actions = possible_commands
 end
@@ -148,7 +150,7 @@ end
 
 local function click(system, wx, wy, button)
     if selected_action then
-        -- @TODO: 
+        -- @TODO: secondary clicks?
     elseif #avaialble_actions > 0 then
         select_command(wx, wy)
     elseif selected_unit then

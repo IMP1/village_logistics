@@ -35,7 +35,12 @@ Automation and maximising efficiency
 
 ## TODO Today
 
-  - [X] unit orders
-  - [X] unit pathing
-  - [X] pathfinding
+  - [ ] checking resource degredation
+  - [ ] finish harvesting (what happens when all the tree is harvested? move on to the next tree)
+  - [ ] containers
+  - [ ] carrying (splitting stacks)
+
+  - [ ] harvest+carrying
+  - [ ] separate harvest + carrying
+  - [ ] production
   - [ ] 
