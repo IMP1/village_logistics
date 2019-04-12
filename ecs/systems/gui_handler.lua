@@ -5,7 +5,7 @@ local name = "gui_handler"
 local filter = function(x, y)
     return function(entity)
         if entity.components.gui then
-            return entity.components.gui.is_over(entity, x, y)
+            return entity.components.gui.is_over and entity.components.gui.is_over(entity, x, y)
         end
         return false
     end
