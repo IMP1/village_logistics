@@ -17,8 +17,11 @@ return {
                 lake_size     = 5,
                 river_amount  = 2,
                 river_bends   = 1,
-            }
+            },
+            tile_size = 32,
         },
-        generatable = {},
+        heightmap     = {},
+        passabilities = {},
+        generatable   = {},
     }
 }
