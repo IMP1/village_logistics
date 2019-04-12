@@ -20,6 +20,8 @@ function Scene.new()
     system_manager.bind(entity_manager)
     system_manager.hook()
 
+    system_manager.load_system("ecs/systems/debugger.lua", true)
+    
     entity_manager.load_entity("ecs/entities/map.lua")
     system_manager.load_system("ecs/systems/map_generator.lua", true)
 
@@ -33,7 +35,6 @@ function Scene.new()
     system_manager.load_system("ecs/systems/unit_orders.lua", true)
     system_manager.load_system("ecs/systems/gui_handler.lua", true)
     
-    system_manager.load_system("ecs/systems/debugger.lua", true)
 
     return self
 end
