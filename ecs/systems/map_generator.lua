@@ -1,7 +1,11 @@
+local pathfinder = require 'lib.pathfinder'
+
 local entity_manager = require 'ecs.entity_manager'
 local system_manager = require 'ecs.system_manager'
 
 local name = "map_generator"
+
+local TILE_SIZE = 32
 
 local function rand(min, max)
     min = math.floor(min)
@@ -18,7 +22,7 @@ local function add_tree(map, x, y)
 
     local tree = entity_manager.load_entity("ecs/entities/tree.lua")
     local location = entity_manager.get_component(tree, "location")
-    location.position = {(x-1) * 32, (y-1) * 32, 1}
+    location.position = {(x-0.5) * TILE_SIZE, (y-0.5) * TILE_SIZE, 1}
 
     map[y][x] = tree
 
@@ -90,6 +94,7 @@ local function smooth_terrain(map)
 end
 
 local function create_hill(map, x, y, size, smooth)
+    -- @TODO: have hills be less uniform.
     map[y][x] = size
     for i = 1, smooth do
         smooth_terrain(map)
@@ -104,7 +109,7 @@ local function add_water(map, x, y, depth, origin, is_source)
 
     local water = entity_manager.load_entity("ecs/entities/water.lua")
     local location = entity_manager.get_component(water, "location")
-    location.position = {(x-1) * 32, (y-1) * 32, 0}
+    location.position = {(x-1) * TILE_SIZE, (y-1) * TILE_SIZE, 0}
     -- TODO: fluid is unused
     local fluid = entity_manager.get_component(water, "fluid")
     fluid.depth     = depth
@@ -212,9 +217,11 @@ local function generate(system, entity)
     entity_manager.remove_component(entity.id, "generatable")
     local heights = {}
     local object_map = {}
+    local passability_map = { nodes = {} }
 
     local width  = entity.components.map.width
     local height = entity.components.map.height
+    TILE_SIZE    = entity.components.map.tile_size
 
     -- Create empty tables
     for j = 1, height do
@@ -291,6 +298,27 @@ local function generate(system, entity)
     entity_manager.add_component(entity.id, "location", {
         position = {0, 0, 0}
     })
+
+    -- Create a passability map
+    for j = 1, #heights do
+        for i = 1, #heights[j] do
+            -- @TODO: if there's an object then maybe make the tile impassable
+            local impassable = false
+            local node = {
+                polygon = {
+                    (i-1) * 32, (j-1) * 32,
+                    (i-1) * 32, (j)   * 32,
+                    (i)   * 32, (j)   * 32,
+                    (i)   * 32, (j-1) * 32,
+                },
+                height = heights[j][i],
+                impassable = impassable,
+            }
+            table.insert(passability_map.nodes, node)
+        end
+    end
+    pathfinder.map(passability_map)
+    entity.components.map.passabilities = passability_map
 
     system_manager.disable_system(system.id)
 end 
