@@ -161,7 +161,7 @@ return {
         command_show  = entity_manager.filter_none,
         command_hide  = entity_manager.filter_none,
         debug_message = entity_manager.filter_none,
-        draw          = entity_manager.filter_none,
+        postdraw      = entity_manager.filter_none,
     },
     events  = { 
         textinput  = textinput,
@@ -173,6 +173,6 @@ return {
         command_show  = show_details,
         command_hide  = hide_details,
         debug_message = debug_message,
-        draw          = draw,
+        postdraw      = draw,
     },
 }

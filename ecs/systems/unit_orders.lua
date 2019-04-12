@@ -82,18 +82,22 @@ local function create_command_options(wx, wy)
     if #possible_commands > 0 then
         for i, cmd in pairs(possible_commands) do
             local action
+            local icon
             if cmd.action == "produce" then
                 action = function(gui_entity)
                     -- @TODO: open building menu for production
                 end
+                icon = "P"
             elseif cmd.action == "carry" then
                 action = function(gui_entity)
                     -- @TODO: have next clicked place be target of carrying
                 end
+                icon = "C"
             elseif cmd.action == "harvest-and-carry" then
                 action = function(gui_entity)
                     -- @TODO: have next clicked place be target of carrying
                 end
+                icon = "HC"
             elseif cmd.action == "harvest" then
                 action = function(gui_entity)
 
@@ -101,18 +105,25 @@ local function create_command_options(wx, wy)
                     --        and if it if can, and the worker can also carry, have both options of just 
                     --        harvesting in place, or harvest and carry.
                 end
+                icon = "H"
             end
 
-            local x, y = unpack(cmd.object.components.location.position)
+            local ox, oy = unpack(cmd.object.components.location.position)
             local button = entity_manager.create_entity("button")
+
+            local radial_menu_radius = 48
+
+            local theta = -math.pi/2 + i * (2 * math.pi / #possible_commands)
+            local x = ox + math.cos(theta) * radial_menu_radius
+            local y = oy + math.sin(theta) * radial_menu_radius
 
             entity_manager.add_component(button, "location", {
                 position = {x-10, y - 32},
             })
             entity_manager.add_component(button, "gui", {
                 draw = function(entity) 
-                    -- @TODO: have icons for action. draw more than a red square.
-                    local char = cmd.action:sub(1, 1)
+                    -- @TODO: have icons for action. draw more than a red square with a letter.
+                    local char = icon
                     love.graphics.setColor(1, 0, 0)
                     love.graphics.rectangle("fill", 0, 0, 20, 20)
                     love.graphics.setColor(0, 0, 0)
@@ -131,7 +142,7 @@ local function create_command_options(wx, wy)
 end
 
 local function select_command(wx, wy)
-
+    print("selecting command @", wx, wy)
 end
 
 local function click(system, wx, wy, button)
