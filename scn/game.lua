@@ -27,13 +27,15 @@ function Scene.new()
 
     entity_manager.load_entity("ecs/entities/camera.lua")
 
+    system_manager.load_system("ecs/systems/mouse_input.lua", true)
     system_manager.load_system("ecs/systems/camera_input.lua", true)
     system_manager.load_system("ecs/systems/renderer.lua", true)
+    system_manager.load_system("ecs/systems/gui_handler.lua", true)
+    
     system_manager.load_system("ecs/systems/resource_degrade.lua", true)
-    system_manager.load_system("ecs/systems/mouse_input.lua", true)
     system_manager.load_system("ecs/systems/selection.lua", true)
     system_manager.load_system("ecs/systems/unit_orders.lua", true)
-    system_manager.load_system("ecs/systems/gui_handler.lua", true)
+    system_manager.load_system("ecs/systems/job_harvest_handler.lua", true)
     
 
     return self
