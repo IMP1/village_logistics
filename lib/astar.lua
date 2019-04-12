@@ -42,13 +42,11 @@ function dist ( x1, y1, x2, y2 )
 end
 
 function dist_between ( nodeA, nodeB )
-
-    return dist ( nodeA[1], nodeA[2], nodeB[1], nodeB[2] )
+    return dist ( nodeA.position[1], nodeA.position[2], nodeB.position[1], nodeB.position[2] )
 end
 
 function heuristic_cost_estimate ( nodeA, nodeB )
-
-    return dist ( nodeA[1], nodeA[2], nodeB[1], nodeB[2] )
+    return dist ( nodeA.position[1], nodeA.position[2], nodeB.position[1], nodeB.position[2] )
 end
 
 function is_valid_node ( node, neighbor )

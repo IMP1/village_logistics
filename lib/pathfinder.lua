@@ -3,7 +3,8 @@
 To setup pathfinder with a map, call the following function:
     pathfinder.map(map)
 where the `map` parameter is a table with a field called nodes.
-The nodes field should be a list of node tables. These tables should have a polygon field which is a list of points.
+The nodes field should be a list of node tables. These tables should have a polygon field, which is a list of points,
+a height field, and and an impassable field.
 
 To use pathfinder to generate a path between two points, call the following function:
     pathfinder.path(starting_point, target_point, agent_size, max_agent_jump, max_agent_fall)
@@ -11,6 +12,8 @@ where `starting_point` is a list of two co-ordinates, as is `target_point`.
 `agent_size` is used to determine how much space to give when rounding corners.
 `max_agent_jump` and `max_agent_fall` are used to determine whether a path exists between two nodes in terms of verticality, 
 going up and down, respectively.
+
+A polygon's list of points must go clockwise? or anti-clockwise? Not sure. Fuck.
 
 --]]
 
@@ -54,11 +57,12 @@ local pathfinder = {
 --   * http://www.koffeebird.com/2014/05/towards-modified-simple-stupid-funnel.html
 --   * http://digestingduck.blogspot.co.uk/2010/03/simple-stupid-funnel-algorithm.html
 
-local DEFAULT_POSSIBLE_JUMP = 4
-local DEFAULT_POSSIBLE_FALL = 4
+local DEFAULT_POSSIBLE_JUMP = 2
+local DEFAULT_POSSIBLE_FALL = 2
+local EDGE_INSIDE_POLYGON   = true
 
-local acceptable_height_jump = 4
-local acceptable_height_fall = 4
+local acceptable_height_jump = 2
+local acceptable_height_fall = 2
 
 local map = {}
 
@@ -76,6 +80,9 @@ local function vertex_equal(v1, v2, epsilon)
 end
 
 local function polygon_contains_point(polygon, point, line_is_inside)
+    if line_is_inside == nil then
+        line_is_inside = EDGE_INSIDE_POLYGON
+    end
     for i = 1, #polygon, 2 do
         local j = i + 1
 
@@ -95,6 +102,7 @@ local function polygon_contains_point(polygon, point, line_is_inside)
         local a = x2 * y1 - x1 * y2
 
         if a == 0 and not line_is_inside then 
+            print("[pathfinder] node on edge of polyon")
             return false
         elseif a < 0 then 
             return false
@@ -151,12 +159,7 @@ local function shared_line_segment(polygon1, polygon2)
 end
 
 local function adjacent_node_function(node, neighbour)
-    -- if shared_line_segment(node.polygon, neighbour.polygon) then
-    --     p(node)
-    --     p(neighbour)
-    --     p(shared_line_segment(node.polygon, neighbour.polygon))
-    --     print("\n\n")
-    -- end
+
     if neighbour.impassable then 
         return false 
     end
@@ -340,11 +343,11 @@ function pathfinder.path(starting_point, target_point, agent_size, max_agent_jum
     end
 
     if starting_node == nil then
-        print("could not locate starting polygon. starting point = " .. starting_point[1] .. ", " .. starting_point[2])
+        print("[pathfinder] could not locate starting polygon. starting point = " .. starting_point[1] .. ", " .. starting_point[2])
         return nil
     end
     if target_node == nil then
-        print("could not locate target polygon. target point = " .. target_point[1] .. ", " .. target_point[2])
+        print("[pathfinder] could not locate target polygon. target point = " .. target_point[1] .. ", " .. target_point[2])
         return nil
     end
 
@@ -366,7 +369,7 @@ function pathfinder.path(starting_point, target_point, agent_size, max_agent_jum
         if node_path then
             point_path = funnel(starting_point, target_point, node_path, (agent_size or 0))
         else
-            print("could not find a path between the two polygons.")
+            print("[pathfinder] could not find a path between the two polygons.")
             return nil
         end
     end
