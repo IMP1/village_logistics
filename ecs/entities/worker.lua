@@ -5,7 +5,7 @@ return {
     components = {
         selectable = {
             priority = 10,
-            size     = 32,       -- radius around location
+            size     = 32,      -- radius around location
             offset   = {0, 24}, -- from location in world
         },
         harvester = {
@@ -19,8 +19,8 @@ return {
             -- work speed?
         },
         moveable = {
-            -- speed
-            -- path
+            move_speed = 64, -- pixels per second
+            path = nil,
         },
         location = {
             position = {100, 100, 1},
