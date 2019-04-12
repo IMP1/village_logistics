@@ -108,7 +108,12 @@ function entity_manager.create_entity(name)
 end
 
 function entity_manager.delete_entity(entity_id)
-    local index = entity_index(entity_id)
+    local index
+    if type(entity_id) == "table" and entity_id.components then
+        index = entity_index(entity_id.id)
+    else
+        index = entity_index(entity_id)
+    end
     table.remove(entities, index)
 end
 
