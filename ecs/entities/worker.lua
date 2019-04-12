@@ -9,7 +9,7 @@ return {
             offset   = {0, 24}, -- from location in world
         },
         harvester = {
-            -- harvest speeds?
+            speed = 1, -- scale factor
         },
         carrier = {
             max_weight = 2, -- kg

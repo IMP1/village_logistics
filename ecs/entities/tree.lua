@@ -22,6 +22,7 @@ return {
         },
         harvestable = {
             resource   = "ecs/entities/wood.lua",
+            reach      = 32,
             max_amount = 100,
             amount     = 100,
             work_time  = 0.5, -- seconds / amount

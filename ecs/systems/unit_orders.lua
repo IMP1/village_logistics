@@ -5,6 +5,7 @@ local name = "unit_orders"
 
 local selected_unit     = nil
 local avaialble_actions = {}
+local selected_action   = nil
 
 -- @BUG: clicking on resource created button and then also triggers button press. somehow.
 
@@ -65,7 +66,7 @@ local function create_command_options(wx, wy)
                 local resource = entity_manager.load_blueprint(entity.components.harvestable.resource)
                 local carrier = selected_unit.components.carrier
                 if carrier and carrier.max_weight >= resource.components.resource.unit_mass then
-                    table.insert(possible_commands, {object = entity, action = "harvest-and-carry"})
+                    table.insert(possible_commands, {object = entity, action = "harvest_and_carry"})
                 end
             end
         end
@@ -93,17 +94,17 @@ local function create_command_options(wx, wy)
                     -- @TODO: have next clicked place be target of carrying
                 end
                 icon = "C"
-            elseif cmd.action == "harvest-and-carry" then
+            elseif cmd.action == "harvest_and_carry" then
                 action = function(gui_entity)
                     -- @TODO: have next clicked place be target of carrying
                 end
                 icon = "HC"
             elseif cmd.action == "harvest" then
                 action = function(gui_entity)
-
-                    -- @TODO: need to check if resource that would be created by harvesting can be carried.
-                    --        and if it if can, and the worker can also carry, have both options of just 
-                    --        harvesting in place, or harvest and carry.
+                    -- @TODO: engage in harvesting
+                    entity_manager.add_component(selected_unit, "job_harvest", {
+                        resource_entity = cmd.object.id,
+                    })
                 end
                 icon = "H"
             end
@@ -146,7 +147,9 @@ local function select_command(wx, wy)
 end
 
 local function click(system, wx, wy, button)
-    if #avaialble_actions > 0 then
+    if selected_action then
+        -- @TODO: 
+    elseif #avaialble_actions > 0 then
         select_command(wx, wy)
     elseif selected_unit then
         create_command_options(wx, wy)
