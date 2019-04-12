@@ -17,8 +17,9 @@ All systems in the game:
   - [X] pawn selection
   - [X] debugging console
   - [X] commands given to pawns
-  - [ ] movement
+  - [X] movement
   - [X] harvesting
+  - [ ] collisions/obstacles
   - [ ] carrying
   - [ ] plant growing
   - [ ] production
@@ -34,7 +35,7 @@ Automation and maximising efficiency
 
 ## TODO Today
 
-  - [ ] unit orders
-  - [ ] unit pathing
-  - [ ] pathfinding
+  - [X] unit orders
+  - [X] unit pathing
+  - [X] pathfinding
   - [ ] 

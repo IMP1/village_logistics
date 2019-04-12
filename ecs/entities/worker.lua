@@ -19,7 +19,7 @@ return {
             -- work speed?
         },
         moveable = {
-            move_speed = 64, -- pixels per second
+            speed = 64, -- pixels per second
             path = nil,
         },
         location = {
