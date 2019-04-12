@@ -6,14 +6,14 @@ local name = "debugger"
 local debugger_entity_id = entity_manager.load_entity("ecs/entities/debug_console.lua")
 local console_command    = ""
 local console_enabled    = false
-local mouse_position     = { 0, 0 }
+local mouse_world_position     = { 0, 0 }
 
 local messages_visible   = false
 local max_debug_lines    = 12
 local debug_messages     = {}
 
 local function update_mouse_position(system, wx, wy)
-    mouse_position = {wx, wy}
+    mouse_world_position = {wx, wy}
 end
 
 local function draw_console()
@@ -35,6 +35,8 @@ local function textinput(system, text)
 end
 
 local function interpret_argument(arg)
+    -- @TODO: allow for special args that translate to stuff. 
+    --        maybe @mx for mouse_x or something?
     return arg
 end
 
@@ -79,7 +81,7 @@ local function keypressed(system, key)
 end
 
 local function spawn_object(system, object_name, ...)
-    local x, y = unpack(mouse_position)
+    local x, y = unpack(mouse_world_position)
     local obj_id = entity_manager.load_entity("ecs/entities/" .. object_name .. ".lua")
     entity_manager.get_entity(obj_id).components.location.position = {x, y}
 
@@ -104,8 +106,8 @@ local function show_details(system, command, ...)
                 indicator = entity_manager.get_entity(entity.components.indicated.indicator)
             else
                 local indicator_id = entity_manager.create_entity("indicator")
-                entity_manager.add_component(indicator_id, "indicated", { indicator = indicator_id })
-                entity_manager.add_component(indicator_id, "debug-selector")
+                entity_manager.add_component(entity, "indicated", { indicator = indicator_id })
+                entity_manager.add_component(indicator_id, "debug_selector")
                 entity_manager.add_component(indicator_id, "location")
                 entity_manager.add_component(indicator_id, "gui")
                 indicator = entity_manager.get_entity(indicator_id)
@@ -120,12 +122,57 @@ local function show_details(system, command, ...)
             end
         end
     end
+    if command == "passability" then
+        for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("map"))) do
+            if not entity.components.indicated then
+                entity_manager.add_component(entity, "indicated")
+                for _, node in pairs(entity.components.map.passabilities.nodes) do
+                    local indicator_id = entity_manager.create_entity("navmesh")
+                    entity_manager.add_component(indicator_id, "debug_navmesh")
+                    entity_manager.add_component(indicator_id, "location", { 
+                        position = {0, 0},
+                    })
+                    print(unpack(node.polygon))
+                    entity_manager.add_component(indicator_id, "renderable", { 
+                        visible = true,
+                        colour  = {0, 1, 1, 0.5},
+                        shape   = {
+                            points = {unpack(node.polygon)},
+                        },
+                    })
+                end
+            end
+        end
+    end
+    if command == "mouse_pos" or command == "mouse_position" then
+        local id = entity_manager.create_entity("mouse_position")
+        entity_manager.add_component(id, "debug_mouse_position")
+        entity_manager.add_component(id, "viewport", {
+            bounds = {0, 0, love.graphics.getWidth(), 48},
+        })
+        entity_manager.add_component(id, "gui", {
+            draw = function()
+                local x, y = unpack(mouse_world_position)
+                love.graphics.print(string.format("%d, %d", x, y), 0, 0)
+            end
+        })
+    end
 end
 
 local function hide_details(system, command, ...)
     local args = {...}
     if command == "selection" then
-        for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("debug-selector"))) do
+        for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("debug_selector"))) do
+            entity_manager.delete_entity(entity.id)
+        end
+    end
+    if command == "passability" then
+        for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("debug_navmesh"))) do
+            entity_manager.delete_entity(entity.id)
+        end
+    end
+    if command == "mouse_pos" or command == "mouse_position" then
+        for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("debug_mouse_position"))) do
             entity_manager.delete_entity(entity.id)
         end
     end
