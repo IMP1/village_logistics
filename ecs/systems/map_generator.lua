@@ -275,9 +275,7 @@ local function generate(system, entity)
     end
 
     -- Make a background image
-    entity_manager.add_component(entity.id, "heightmap", {
-        heights = heights,
-    })
+    entity.components.map.heightmap = heights
     local tileset = love.graphics.newImage("res/gfx/tileset.png")
 
     local background_texture = love.graphics.newSpriteBatch(tileset, width * height)
