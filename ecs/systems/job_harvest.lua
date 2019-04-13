@@ -114,7 +114,6 @@ local function update(system, worker, dt)
                 if nearest_stack.components.resource.amount + amount > nearest_stack.components.resource.max_stack then
                     amount = amount - (nearest_stack.components.resource.max_stack - nearest_stack.components.resource.amount)
                     nearest_stack.components.resource.amount = nearest_stack.components.resource.max_stack
-
                     new_stack(source.components.harvestable.resource, amount, wx, wy)
                 else
                     nearest_stack.components.resource.amount = nearest_stack.components.resource.amount + amount
