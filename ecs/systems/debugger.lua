@@ -86,10 +86,6 @@ local function spawn_object(system, object_name, ...)
     local x, y = unpack(mouse_world_position)
     local obj_id = entity_manager.load_entity("ecs/entities/" .. object_name .. ".lua")
     entity_manager.get_entity(obj_id).components.location.position = {x, y}
-
-    for k, v in pairs(entity_manager.get_entity(obj_id).components) do
-        print(k)
-    end
 end
 
 local function meta_debug(system, command, ...)
@@ -134,7 +130,6 @@ local function show_details(system, command, ...)
                     entity_manager.add_component(indicator_id, "location", { 
                         position = {0, 0},
                     })
-                    print(unpack(node.polygon))
                     entity_manager.add_component(indicator_id, "renderable", { 
                         visible = true,
                         colour  = {0, 1, 1, 0.5},
