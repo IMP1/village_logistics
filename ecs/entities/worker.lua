@@ -12,8 +12,9 @@ return {
             speed = 1, -- scale factor
         },
         carrier = {
-            max_weight = 2, -- kg
-            -- resource limits?
+            max_weight    = 2, -- kg
+            pickup_speed  = 1, -- units per second
+            putdown_speed = 1, -- units per second
         },
         producer = {
             -- work speed?
