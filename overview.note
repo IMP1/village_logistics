@@ -35,8 +35,8 @@ Automation and maximising efficiency
 
 ## TODO Today
 
-  - [ ] checking resource degredation
-  - [ ] finish harvesting (what happens when all the tree is harvested? move on to the next tree)
+  - [X] checking resource degredation
+  - [X] finish harvesting (what happens when all the tree is harvested? move on to the next tree)
   - [ ] containers
   - [ ] carrying (splitting stacks)
 
