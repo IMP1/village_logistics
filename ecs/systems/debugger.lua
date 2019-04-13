@@ -167,6 +167,9 @@ local function hide_details(system, command, ...)
         for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("debug_selector"))) do
             entity_manager.delete_entity(entity.id)
         end
+        for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("selectable", "location"))) do
+            entity_manager.remove_component(entity.id, "indicated")
+        end
     end
     if command == "passability" then
         for _, entity in pairs(entity_manager.get_entities(entity_manager.component_filter("debug_navmesh"))) do
