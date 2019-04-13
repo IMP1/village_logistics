@@ -1,6 +1,6 @@
 local name = "wood"
 
-local wood_image = love.graphics.newImage("res/gfx/tree.png")
+local wood_image = love.graphics.newImage("res/gfx/planks.png")
 
 return {
     name = name,
@@ -16,7 +16,14 @@ return {
         renderable = {
             visible = true,
             texture = wood_image,
+            quad    = love.graphics.newQuad(0, 0, 32, 32, 32 ,64),
             colour  = {1, 1, 1},
+            offset  = {16, 16},
+        },
+        selectable = {
+            priority = 2,
+            size     = 24,     -- radius around location
+            offset   = {0, 0}, -- from location in world
         },
     }
 }

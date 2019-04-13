@@ -9,7 +9,7 @@ return {
             position = {0, 0, 1},
         },
         selectable = {
-            priority = 5,
+            priority = 6,
             size     = 32,       -- radius around location
             offset   = {16, 24}, -- from location in world
         },
