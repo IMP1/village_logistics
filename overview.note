@@ -37,7 +37,7 @@ Automation and maximising efficiency
 
   - [X] checking resource degredation
   - [X] finish harvesting (what happens when all the tree is harvested? move on to the next tree)
-  - [ ] containers
+  - [X] containers
   - [ ] carrying (splitting stacks)
 
   - [ ] harvest+carrying
