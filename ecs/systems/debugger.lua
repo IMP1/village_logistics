@@ -51,7 +51,9 @@ local function perform_command()
     -- @TODO: check if valid command?
     print(command, unpack(args))
     system_manager.broadcast("command_" .. command, unpack(args))
-    console_command = ""
+    if not love.keyboard.isDown("lctrl") then
+        console_command = ""
+    end
     if not love.keyboard.isDown("lshift") then
         entity_manager.remove_component(debugger_entity_id, "gui")
         console_enabled = false
