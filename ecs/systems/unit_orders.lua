@@ -103,12 +103,14 @@ local function create_command_options(wx, wy)
                 action = function(gui_entity)
                     entity_manager.add_component(selected_unit, "job_harvest", {
                         resource_entity = cmd.object.id,
+                        resource_path   = cmd.object.components.harvestable.resource,
                     })
+                    for _, action in pairs(avaialble_actions) do
+                        entity_manager.delete_entity(action.button)
+                    end
                 end
                 icon = "H"
             end
-
-            -- @TODO: remove button once selected.
 
             local ox, oy = unpack(cmd.object.components.location.position)
             local button = entity_manager.create_entity("button")
