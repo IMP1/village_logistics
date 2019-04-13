@@ -15,8 +15,11 @@ local nearby_sources_filter = function(resource, x, y)
     end
 end
 
+local NEARBY_STACK_DISTANCE = 32
+
 local nearby_stack_filter = function(resource_name, x, y, leeway)
     return function(entity)
+        local leeway = leeway or NEARBY_STACK_DISTANCE
         if not entity.components.location then return false end
         if not entity.components.resource then return false end
 
@@ -30,9 +33,42 @@ local nearby_stack_filter = function(resource_name, x, y, leeway)
     end
 end
 
+local function next_job(last_job, worker)
+    local wx, wy = unpack(worker.components.location.position)
+    local nearby_sources = entity_manager.get_entities(nearby_sources_filter(last_job.resource_path, wx, wy))
+
+    if #nearby_sources == 0 then
+        entity_manager.remove_component(worker, "job_harvest")
+    else
+        table.sort(nearby_sources, function(a, b)
+            local ax, ay = unpack(a.components.location.position)
+            local bx, by = unpack(b.components.location.position)
+            local dx_a, dy_a = ax - wx, ay - wy
+            local dx_b, dy_b = bx - wx, by - wy
+            return dx_a*dx_a + dy_a*dy_a < dx_b*dx_b + dy_b*dy_b
+        end)
+        last_job.resource_entity = nearby_sources[1].id
+    end
+end
+
+-- @TODO: factor out this code from update method
+local function new_stack(resource_path, amount, x, y)
+    local resource_id = entity_manager.load_entity(resource_path)
+    local resource = entity_manager.get_entity(resource_id)
+    resource.components.resource.amount = amount
+    -- @TODO: have the position be slightly offset from the worker.
+    resource.components.location.position = { x, y }
+end
+
 local function update(system, worker, dt)
     local job = worker.components.job_harvest
     local source = entity_manager.get_entity(job.resource_entity)
+
+    if source == nil then -- someone else finished harvesting this
+        next_job(job, worker)
+        return
+    end
+
     local wx, wy = unpack(worker.components.location.position)
     local rx, ry = unpack(source.components.location.position)
 
@@ -63,7 +99,7 @@ local function update(system, worker, dt)
             job.timer = job.timer - source.components.harvestable.work_time
 
             local resource_name = entity_manager.load_blueprint(source.components.harvestable.resource).name
-            local nearby_stacks = entity_manager.get_entities(nearby_stack_filter(resource_name, wx, wy, 64))
+            local nearby_stacks = entity_manager.get_entities(nearby_stack_filter(resource_name, wx, wy))
             if #nearby_stacks > 0 then
                 if #nearby_stacks > 1 then
                     table.sort(nearby_stacks, function(a, b)
@@ -79,20 +115,12 @@ local function update(system, worker, dt)
                     amount = amount - (nearest_stack.components.resource.max_stack - nearest_stack.components.resource.amount)
                     nearest_stack.components.resource.amount = nearest_stack.components.resource.max_stack
 
-                    local resource_id = entity_manager.load_entity(source.components.harvestable.resource)
-                    local resource = entity_manager.get_entity(resource_id)
-                    resource.components.resource.amount = amount
-                    -- @TODO: have the position be slightly offset from the worker.
-                    resource.components.location.position = { wx, wy }
+                    new_stack(source.components.harvestable.resource, amount, wx, wy)
                 else
                     nearest_stack.components.resource.amount = nearest_stack.components.resource.amount + amount
                 end
             else
-                local resource_id = entity_manager.load_entity(source.components.harvestable.resource)
-                local resource = entity_manager.get_entity(resource_id)
-                resource.components.resource.amount = amount
-                -- @TODO: have the position be slightly offset from the worker.
-                resource.components.location.position = { wx, wy }
+                new_stack(source.components.harvestable.resource, amount, wx, wy)
             end
 
             source.components.harvestable.amount = source.components.harvestable.amount - amount
@@ -100,24 +128,8 @@ local function update(system, worker, dt)
             system_manager.broadcast("onharvest", source, worker)
 
             if source.components.harvestable.amount <= 0 then
-                local resource_name = source.components.harvestable.resource
-
+                next_job(job, worker)
                 entity_manager.delete_entity(source)
-
-                local nearby_sources = entity_manager.get_entities(nearby_sources_filter(resource_name, wx, wy))
-
-                if #nearby_sources == 0 then
-                    entity_manager.remove_component(worker, "job_harvest")
-                end
-
-                table.sort(nearby_sources, function(a, b)
-                    local ax, ay = unpack(a.components.location.position)
-                    local bx, by = unpack(b.components.location.position)
-                    local dx_a, dy_a = ax - wx, ay - wy
-                    local dx_b, dy_b = bx - wx, by - wy
-                    return dx_a*dx_a + dy_a*dy_a < dx_b*dx_b + dy_b*dy_b
-                end)
-                job.resource_entity = nearby_sources[1].id
             end
         end
 
