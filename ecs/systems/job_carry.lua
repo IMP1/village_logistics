@@ -37,25 +37,34 @@ local function update(system, worker, dt)
         if source.components.resource.amount > 0 then
             job.pickup_timer = job.pickup_timer + dt * worker.components.carrier.pickup_speed
             if job.pickup_timer >= PICKUP_TIMER then
+                job.pickup_timer = job.pickup_timer - PICKUP_TIMER
                 -- if can carry item
                     -- pick up item
-                job.pickup_timer = job.pickup_timer - PICKUP_TIMER
             end
         end
         if source.components.resource.amount <= 0 then
             -- delete it
         end
+        return
     end
     
     if is_at(worker, target.components.location.position) then
         -- do equivilent of picking up for putting down
+        return
     end
 
-    if job.returning then
-
+    if worker.components.moveable and not worker.components.moveable.path then
+        local wx, wy = unpack(worker.components.location.position)
+        local destination
+        if job.returning then
+            destination = target
+        else
+            destination = source
+        end
+        local x, y = unpack(destination.components.location.position)
+        local path = pathfinder.path({wx, wy}, {x, y})
+        worker.components.moveable.path = path
     end
-
-    print("carrying!")
 end
 
 return {
