@@ -21,6 +21,7 @@ return {
         },
         container = {
             stacks = 4,
+            inventory = {}, -- list of {resource="", amount=0}
         },
     }
 }

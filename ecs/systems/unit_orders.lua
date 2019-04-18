@@ -29,7 +29,7 @@ local function get_options()
     if not selected_unit.components.harvester then
         harvest = false
     end
-    if not selected_unit.components.carrier then
+    if not selected_unit.components.conveyor then
         carry = false
     end
     if not selected_unit.components.producer then
@@ -68,9 +68,8 @@ local function create_command_options(wx, wy)
         if possible_actions.harvest and entity.components.harvestable then
             table.insert(possible_commands, {object = entity, action = "harvest"})
             if possible_actions.carry then
-                local resource = entity_manager.load_blueprint(entity.components.harvestable.resource)
-                local carrier = selected_unit.components.carrier
-                if carrier and carrier.max_weight >= resource.components.resource.unit_mass then
+                local carrier = selected_unit.components.conveyor
+                if carrier then
                     table.insert(possible_commands, {object = entity, action = "harvest_and_carry"})
                 end
             end
@@ -164,6 +163,9 @@ local function select_target(wx, wy)
     print("selecting target")
     if selected_action.name == "carry" then
         local containers = entity_manager.get_entities(entity_manager.component_filter("location", "container"))
+        containers = table.filter(containers, function(elem)
+            return not elem.components.conveyor
+        end)
         if #containers > 0 then
             if #containers > 1 then
                 table.sort(containers, function(a, b)
@@ -178,6 +180,7 @@ local function select_target(wx, wy)
             entity_manager.add_component(selected_unit, "job_carry", {
                 source        = selected_action.source.id,
                 target        = nearest.id,
+                resource_name = nil,
                 pickup_timer  = 0,
                 putdown_timer = 0,
             })
