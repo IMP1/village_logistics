@@ -1,3 +1,4 @@
+require 'lib.table_util'
 local scene_manager = require 'scn.scn_manager'
 
 local INITIAL_SCENE = require 'scn.game'
