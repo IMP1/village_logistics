@@ -24,20 +24,23 @@ local PUTDOWN_TIMER = 0.5
 
 local function pick_up(worker, job, source, target, dt)
     local resource = source.components.resource
+    local carrier_container = worker.components.container
+
+    local max_stack = math.floor(resource.max_stack * carrier_container.stack_size)
 
     local first_stack_with_room = 0
     local room_for_resource = 0
-    for i = worker.components.container.stacks, 1, -1 do
-        local stack = worker.components.container.inventory[i]
+    for i = carrier_container.stacks, 1, -1 do
+        local stack = carrier_container.inventory[i]
         if stack == nil then
             first_stack_with_room = i
-            room_for_resource = room_for_resource + resource.max_stack
+            room_for_resource = room_for_resource + max_stack
         elseif stack.resource == resource.name then
             first_stack_with_room = i
-            room_for_resource = room_for_resource + math.max(0, resource.max_stack - stack.amount)
+            room_for_resource = room_for_resource + math.max(0, max_stack - stack.amount)
         end
     end
-    local resource_stack = worker.components.container.inventory[first_stack_with_room]
+    local resource_stack = carrier_container.inventory[first_stack_with_room]
 
     if room_for_resource <= 0 then
         if not worker.components.moveable.path then
@@ -93,16 +96,13 @@ local function put_down(worker, job, source, target, dt)
         local stack = container.inventory[i]
         if stack == nil then
             first_stack_with_room = i
-            room_for_resource = room_for_resource + resource.max_stack
+            room_for_resource = room_for_resource + resource.max_stack * container.stack_size
         elseif stack.resource == resource.name then
             first_stack_with_room = i
-            room_for_resource = room_for_resource + math.max(0, resource.max_stack - stack.amount)
+            room_for_resource = room_for_resource + math.max(0, (resource.max_stack * container.stack_size) - stack.amount)
         end
     end
     local container_stack = container.inventory[first_stack_with_room]
-
-    print("room for resource = ", room_for_resource)
-    print("amount carried = ", amount_carried)
 
     if room_for_resource <= 0 then
         job_finished(worker)
@@ -111,7 +111,6 @@ local function put_down(worker, job, source, target, dt)
         job.returning = false
 
     else
-        print("tring to put down...")
         if container_stack == nil then
             container_stack = { resource = resource.name, amount = 0}
             container.inventory[first_stack_with_room] = container_stack

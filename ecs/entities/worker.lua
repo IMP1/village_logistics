@@ -21,6 +21,7 @@ return {
         container = {
             stacks     = 1,
             inventory  = {}, -- list of {resource="", amount=0}
+            stack_size = 0.5, -- @TODO: use this to scale the max_stack property of a resource to determine how much this container can hold.
         },
         moveable = {
             speed = 64, -- pixels per second

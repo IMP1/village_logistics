@@ -1,3 +1,4 @@
+local pathfinder     = require 'lib.pathfinder'
 local entity_manager = require 'ecs.entity_manager'
 local system_manager = require 'ecs.system_manager'
 
@@ -8,10 +9,14 @@ local avaialble_actions = {}
 local chosen_action     = nil -- before running it
 local selected_action   = nil
 
+local gui_clicked_this_frame = false
+
 -- @BUG: clicking on resource created button and then also triggers button press. somehow.
 
 local function deselect_unit()
-    entity_manager.remove_component(selected_unit.id, "selected")
+    if selected_unit then
+        entity_manager.remove_component(selected_unit.id, "selected")
+    end
 end
 
 local function selection(system, newly_selected_entity)
@@ -59,6 +64,43 @@ local function get_filter_for_click(wx, wy, leeway)
     end
 end
 
+local function select_target(wx, wy)
+    print("selecting target")
+    if selected_action.name == "carry" then
+        local containers = entity_manager.get_entities(entity_manager.component_filter("location", "container"))
+        containers = table.filter(containers, function(elem)
+            return not elem.components.conveyor
+        end)
+        if #containers > 0 then
+            if #containers > 1 then
+                table.sort(containers, function(a, b)
+                    local ax, ay = unpack(a.components.location.position)
+                    local bx, by = unpack(b.components.location.position)
+                    local dx_a, dy_a = ax - wx, ay - wy
+                    local dx_b, dy_b = bx - wx, by - wy
+                    return dx_a*dx_a + dy_a*dy_a < dx_b*dx_b + dy_b*dy_b
+                end)
+            end
+            local nearest = containers[1]
+            entity_manager.add_component(selected_unit, "job_carry", {
+                source        = selected_action.source.id,
+                target        = nearest.id,
+                resource_name = nil,
+                pickup_timer  = 0,
+                putdown_timer = 0,
+            })
+            selected_action = nil
+        end
+    end
+    selection()
+    deselect_unit()
+end
+
+local function select_command(wx, wy)
+    print("selecting command")
+    chosen_action()
+end
+
 local function create_command_options(wx, wy)
     print("selecting unit", selected_unit.name)
     local possible_actions = get_options()
@@ -93,11 +135,11 @@ local function create_command_options(wx, wy)
                 icon = "P"
             elseif cmd.action == "carry" then
                 action = function()
+                    print("enacting command (carry)")
                     selected_action = {
                         name   = "carry",
                         source = cmd.object
                     }
-                    -- @TODO: have next clicked place be target of carrying
                 end
                 icon = "C"
             elseif cmd.action == "harvest_and_carry" then
@@ -107,13 +149,12 @@ local function create_command_options(wx, wy)
                 icon = "HC"
             elseif cmd.action == "harvest" then
                 action = function()
+                    print("adding job_havest component")
                     entity_manager.add_component(selected_unit, "job_harvest", {
                         resource_entity = cmd.object.id,
                         resource_path   = cmd.object.components.harvestable.resource,
                     })
-                    for _, action in pairs(avaialble_actions) do
-                        entity_manager.delete_entity(action.button)
-                    end
+                    selection()
                     deselect_unit()
                 end
                 icon = "H"
@@ -131,7 +172,6 @@ local function create_command_options(wx, wy)
             entity_manager.add_component(button, "location", {
                 position = {x-10, y - 32},
             })
-            chosen_action = action
             entity_manager.add_component(button, "gui", {
                 draw = function(entity) 
                     -- @TODO: have icons for action. draw more than a red square with a letter.
@@ -145,64 +185,31 @@ local function create_command_options(wx, wy)
                     local x, y = unpack(entity.components.location.position)
                     return mx >= x and mx <= x + 20 and my >= y - 50 and my <= y + 50
                 end,
-                click = select_command,
+                click = function()
+                    gui_clicked_this_frame = true
+                    action()
+                end,
             })
             cmd.button = button
         end
-    -- @TODO: else just move the unit to the location?
+    else
+        local ox, oy = unpack(selected_unit.components.location.position)
+        local path = pathfinder.path({ox, oy}, {wx, wy})
+        selected_unit.components.moveable.path = path
     end
     avaialble_actions = possible_commands
 end
 
-local function select_command(wx, wy)
-    print("selecting command")
-    chosen_action()
-end
-
-local function select_target(wx, wy)
-    print("selecting target")
-    if selected_action.name == "carry" then
-        local containers = entity_manager.get_entities(entity_manager.component_filter("location", "container"))
-        containers = table.filter(containers, function(elem)
-            return not elem.components.conveyor
-        end)
-        if #containers > 0 then
-            if #containers > 1 then
-                table.sort(containers, function(a, b)
-                    local ax, ay = unpack(a.components.location.position)
-                    local bx, by = unpack(b.components.location.position)
-                    local dx_a, dy_a = ax - wx, ay - wy
-                    local dx_b, dy_b = bx - wx, by - wy
-                    return dx_a*dx_a + dy_a*dy_a < dx_b*dx_b + dy_b*dy_b
-                end)
-            end
-            local nearest = containers[1]
-            entity_manager.add_component(selected_unit, "job_carry", {
-                source        = selected_action.source.id,
-                target        = nearest.id,
-                resource_name = nil,
-                pickup_timer  = 0,
-                putdown_timer = 0,
-            })
-            selected_action = nil
-        end
-    end
-    for _, action in pairs(avaialble_actions) do
-        entity_manager.delete_entity(action.button)
-    end
-    avaialble_actions = {}
-    deselect_unit()
-end
-
 local function click(system, wx, wy, button)
     print("click")
-    if selected_action then
+    if selected_action and not gui_clicked_this_frame then
         select_target(wx, wy)
     elseif #avaialble_actions > 0 then
-        select_command(wx, wy)
+        -- select_command(wx, wy) -- handled by gui buttons
     elseif selected_unit then
         create_command_options(wx, wy)
     end
+    gui_clicked_this_frame = false
 end
 
 return {

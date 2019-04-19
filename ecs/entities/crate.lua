@@ -20,8 +20,9 @@ return {
             offset  = {16, 20},
         },
         container = {
-            stacks = 4,
-            inventory = {}, -- list of {resource="", amount=0}
+            stacks     = 4,
+            inventory  = {}, -- list of {resource="", amount=0}
+            stack_size = 1,
         },
     }
 }
