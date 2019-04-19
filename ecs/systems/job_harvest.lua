@@ -51,7 +51,6 @@ local function next_job(last_job, worker)
     end
 end
 
--- @TODO: factor out this code from update method
 local function new_stack(resource_path, amount, x, y)
     local resource_id = entity_manager.load_entity(resource_path)
     local resource = entity_manager.get_entity(resource_id)

@@ -23,6 +23,7 @@ return {
             stacks     = 4,
             inventory  = {}, -- list of {resource="", amount=0}
             stack_size = 1,
+            -- filters?
         },
     }
 }
