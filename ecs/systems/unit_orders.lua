@@ -11,11 +11,18 @@ local selected_action   = nil
 
 local gui_clicked_this_frame = false
 
--- @BUG: clicking on resource created button and then also triggers button press. somehow.
+-- @TODO: make jobs their own entities, reworking components. (new branch!)
 
 local function deselect_unit()
     if selected_unit then
+        print("deselecting unit")
         entity_manager.remove_component(selected_unit.id, "selected")
+    end
+end
+
+local function stop_on_path()
+    if selected_unit.components.moveable then
+        selected_unit.components.moveable.path = nil
     end
 end
 
@@ -90,10 +97,10 @@ local function select_target(wx, wy)
                 putdown_timer = 0,
             })
             selected_action = nil
+            stop_on_path()
         end
     end
-    selection()
-    deselect_unit()
+    selection(nil, selected_unit)
 end
 
 local function select_command(wx, wy)
@@ -118,6 +125,8 @@ local function create_command_options(wx, wy)
         end
         if possible_actions.carry and entity.components.resource then
             table.insert(possible_commands, {object = entity, action = "carry"})
+        elseif possible_actions.carry and entity.components.container then
+            table.insert(possible_commands, {object = entity, action = "carry"})
         end
         if possible_actions.produce and entity.components.production then
             table.insert(possible_commands, {object = entity, action = "produce"})
@@ -135,7 +144,6 @@ local function create_command_options(wx, wy)
                 icon = "P"
             elseif cmd.action == "carry" then
                 action = function()
-                    print("enacting command (carry)")
                     selected_action = {
                         name   = "carry",
                         source = cmd.object
@@ -154,8 +162,8 @@ local function create_command_options(wx, wy)
                         resource_entity = cmd.object.id,
                         resource_path   = cmd.object.components.harvestable.resource,
                     })
-                    selection()
-                    deselect_unit()
+                    selection(nil)
+                    stop_on_path()
                 end
                 icon = "H"
             end
@@ -192,24 +200,33 @@ local function create_command_options(wx, wy)
             })
             cmd.button = button
         end
-    else
+    elseif selected_unit.components.moveable then
         local ox, oy = unpack(selected_unit.components.location.position)
         local path = pathfinder.path({ox, oy}, {wx, wy})
         selected_unit.components.moveable.path = path
+        entity_manager.remove_component(selected_unit, "job_harvest")
+        entity_manager.remove_component(selected_unit, "job_carry")
+                      
     end
     avaialble_actions = possible_commands
 end
 
 local function click(system, wx, wy, button)
     print("click")
-    if selected_action and not gui_clicked_this_frame then
+    if selected_action and not gui_clicked_this_frame and button == 2 then
         select_target(wx, wy)
-    elseif #avaialble_actions > 0 then
+    elseif #avaialble_actions > 0 and button == 2 then
         -- select_command(wx, wy) -- handled by gui buttons
-    elseif selected_unit then
+    elseif selected_unit and button == 2 then
         create_command_options(wx, wy)
     end
     gui_clicked_this_frame = false
+end
+
+local function keypressed(system, key)
+    if key == "escape" then
+        deselect_unit()
+    end
 end
 
 return {
@@ -217,9 +234,11 @@ return {
     filters = {
         onselection = entity_manager.filter_none,
         onclick     = entity_manager.filter_none,
+        keypressed  = entity_manager.filter_none,
     },
     events  = {
         onselection = selection,
         onclick     = click,
+        keypressed  = keypressed,
     },
 }
