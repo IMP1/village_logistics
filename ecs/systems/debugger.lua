@@ -84,8 +84,16 @@ end
 
 local function spawn_object(system, object_name, ...)
     local x, y = unpack(mouse_world_position)
-    local obj_id = entity_manager.load_entity("ecs/entities/" .. object_name .. ".lua")
-    entity_manager.get_entity(obj_id).components.location.position = {x, y}
+
+    local success, err = pcall(function ()
+        local obj_id = entity_manager.load_entity("ecs/entities/" .. object_name .. ".lua")
+        entity_manager.get_entity(obj_id).components.location.position = {x, y}
+    end)
+
+    if not success then
+        print(err)
+    end
+
 end
 
 local function meta_debug(system, command, ...)
