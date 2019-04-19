@@ -19,8 +19,8 @@ All systems in the game:
   - [X] commands given to pawns
   - [X] movement
   - [X] harvesting
+  - [X] carrying
   - [ ] collisions/obstacles
-  - [ ] carrying
   - [ ] plant growing
   - [ ] production
   - [ ] water handling (fluid in general?)
@@ -33,14 +33,14 @@ All systems in the game:
 Automation and maximising efficiency
 
 
-## TODO Today
+## Short-term TODO
 
   - [X] checking resource degredation
   - [X] finish harvesting (what happens when all the tree is harvested? move on to the next tree)
   - [X] containers
-  - [ ] carrying (splitting stacks)
-
+  - [X] carrying (splitting stacks)
   - [ ] harvest+carrying
   - [ ] separate harvest + carrying
   - [ ] production
   - [ ] 
+
