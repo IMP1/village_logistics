@@ -82,6 +82,9 @@
                                      is drawn.
       * fill_colour : {r, g, b, a} : if a shape is being drawn, this will be the 
                                      colour of inside the shape.
+      * offset      : {x, y}       : where x is the horizontal offset the image
+                                     is to be drawn at, and y is the vertical 
+                                     offset the image is to be drawn at.
 
 
 `gui`
