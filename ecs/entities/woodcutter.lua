@@ -1,6 +1,6 @@
 local name = "woodcutter"
 
--- local building_image = love.graphics.newImage("res/gfx/tree_stages.png")
+local building_image = love.graphics.newImage("res/gfx/woodcutter.png")
 
 return {
     name = name,
@@ -10,34 +10,34 @@ return {
         },
         selectable = {
             priority = 6,
-            size     = 32,       -- radius around location
-            offset   = {16, 24}, -- from location in world
+            size     = 128,       -- radius around location
+            offset   = {0, 0}, -- from location in world
         },
         renderable = {
             visible = true,
-            texture = tree_image,
-            quad    = love.graphics.newQuad(0, 0, 32, 48, 32, 144),
+            texture = building_image,
             colour  = {1, 1, 1},
+            offset  = {120, 96},
         },
         production = {
             recipes = {
                 {
                     inputs = {
                         { resource = "wood", amount = 2 }
-                    }
+                    },
                     outputs = {
                         { resource = "logs", amount = 1 }
-                    }
-                    work_time = 1 -- seconds
+                    },
+                    work_time = 1, -- seconds
                 },
                 {
                     inputs = {
                         { resource = "wood", amount = 2 }
-                    }
+                    },
                     outputs = {
                         { resource = "planks", amount = 1 }
-                    }
-                    work_time = 1 -- seconds
+                    },
+                    work_time = 1, -- seconds
                 },
             }
         },
