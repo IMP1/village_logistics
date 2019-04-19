@@ -24,9 +24,9 @@ local PUTDOWN_TIMER = 0.5
 
 local function pick_up(worker, job, source, target, dt)
     local resource = source.components.resource
+
     local first_stack_with_room = 0
     local room_for_resource = 0
-
     for i = worker.components.container.stacks, 1, -1 do
         local stack = worker.components.container.inventory[i]
         if stack == nil then
@@ -51,6 +51,7 @@ local function pick_up(worker, job, source, target, dt)
     elseif resource.amount > 0 then
         if resource_stack == nil then
             resource_stack = { resource = resource.name, amount = 0}
+            worker.components.container.inventory[first_stack_with_room] = resource_stack
         end
         job.pickup_timer = job.pickup_timer + dt * worker.components.conveyor.pickup_speed
         if job.pickup_timer >= PICKUP_TIMER then
@@ -71,14 +72,59 @@ local function pick_up(worker, job, source, target, dt)
 end
 
 local function put_down(worker, job, source, target, dt)
+    local container = target.components.container
+    
+    local amount_carried = 0
+    local stack_carrying = 0
+    for i = worker.components.container.stacks, 1, -1 do
+        local stack = worker.components.container.inventory[i]
+        if stack and stack.resource == job.resource_name then
+            amount_carried = amount_carried + stack.amount
+            stack_carrying = i
+        end
+    end
 
-    -- if there is no room in container then
-        -- job_finished(worker)
+    local resource = entity_manager.load_blueprint(job.resource_name).components.resource
+    local resource_stack = worker.components.container.inventory[stack_carrying]
 
-    -- elseif the worker has no more of the resource then
-        -- job.returning = false
+    local first_stack_with_room = 0
+    local room_for_resource = 0
+    for i = container.stacks, 1, -1 do
+        local stack = container.inventory[i]
+        if stack == nil then
+            first_stack_with_room = i
+            room_for_resource = room_for_resource + resource.max_stack
+        elseif stack.resource == resource.name then
+            first_stack_with_room = i
+            room_for_resource = room_for_resource + math.max(0, resource.max_stack - stack.amount)
+        end
+    end
+    local container_stack = container.inventory[first_stack_with_room]
 
-    -- 
+    print("room for resource = ", room_for_resource)
+    print("amount carried = ", amount_carried)
+
+    if room_for_resource <= 0 then
+        job_finished(worker)
+
+    elseif amount_carried <= 0 then
+        job.returning = false
+
+    else
+        print("tring to put down...")
+        if container_stack == nil then
+            container_stack = { resource = resource.name, amount = 0}
+            container.inventory[first_stack_with_room] = container_stack
+        end
+        job.putdown_timer = job.putdown_timer + dt * worker.components.conveyor.putdown_speed
+        if job.putdown_timer >= PUTDOWN_TIMER then
+            job.putdown_timer = job.putdown_timer - PUTDOWN_TIMER
+            resource_stack.amount = resource_stack.amount - 1
+            container_stack.amount = container_stack.amount + 1
+            print("putting down " .. job.resource_name)
+        end
+
+    end
 
 end
 
