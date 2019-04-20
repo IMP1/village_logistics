@@ -6,6 +6,9 @@ local MOVE_SPEED = 256 -- pixels / second
 
 local console_filter = entity_manager.component_filter("console", "gui")
 
+local screen_width  = love.graphics.getWidth()
+local screen_height = love.graphics.getHeight()
+
 local filter = entity_manager.component_filter("viewport", "transform")
 local function move(system, entity, dt)
     if #entity_manager.get_entities(console_filter) > 0 then
@@ -30,10 +33,27 @@ local function move(system, entity, dt)
     end
 end
 
--- TODO: on resize, resize the viewport with respect to the change in window dimensions
+local function resize(system, entity, new_width, new_height)
+    local old_width, old_height = screen_width, screen_height
+    local scale_x = new_width  / old_width
+    local scale_y = new_height / old_height
+    local x, y, w, h = unpack(entity.components.viewport.bounds)
+
+    entity.components.viewport.bounds = {
+        x * scale_x, y * scale_y,
+        w * scale_x, h * scale_y,
+    }
+
+end
 
 return {
     name    = name,
-    filters = { update = filter },
-    events  = { update = move },
+    filters = { 
+        update = filter,
+        resize = filter,
+    },
+    events  = { 
+        update = move,
+        resize = resize,
+    },
 }

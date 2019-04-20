@@ -1,5 +1,5 @@
 function love.conf(game)
-    game.window.title = "For the Realm"
+    game.window.title = "Village Logistics"
 
     game.window.resizable = true
     game.window.minwidth  = 640
