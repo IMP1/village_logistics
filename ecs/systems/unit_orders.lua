@@ -162,8 +162,8 @@ local function create_command_options(wx, wy)
                         resource_entity = cmd.object.id,
                         resource_path   = cmd.object.components.harvestable.resource,
                     })
-                    selection(nil)
                     stop_on_path()
+                    selection(nil)
                 end
                 icon = "H"
             end
